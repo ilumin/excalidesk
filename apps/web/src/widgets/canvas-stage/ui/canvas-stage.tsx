@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { readSketch, writeSketch } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
+import { useEditorStore } from "@/features/editor-controls";
 import { CanvasPanel } from "@/shared/ui";
 
 import "@excalidraw/excalidraw/index.css";
@@ -28,6 +29,8 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
     (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.filePath,
   );
   const setDirty = useTabStore((state) => state.setDirty);
+  const setEditorApi = useEditorStore((state) => state.setApi);
+  const compact = useEditorStore((state) => state.compact);
 
   const [scene, setScene] = useState<ExcalidrawInitialDataState | null>(null);
   const api = useRef<ExcalidrawImperativeAPI | null>(null);
@@ -84,6 +87,7 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
     <CanvasPanel className={flush ? "m-0 rounded-none border-0 shadow-none" : undefined}>
       <div
         className="ed-canvas relative flex-1 overflow-hidden"
+        data-compact={compact ? "" : undefined}
         style={{
           backgroundImage: "radial-gradient(var(--ed-dots) 1px, transparent 1px)",
           backgroundSize: "22px 22px",
@@ -95,6 +99,8 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
             key={activeTabId}
             excalidrawAPI={(editor) => {
               api.current = editor;
+              // Published so the settings menu can drive the library sidebar.
+              setEditorApi(editor);
             }}
             initialData={{
               ...scene,

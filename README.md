@@ -88,6 +88,12 @@ the editor fills the window; the bottom-centre pill or `Esc` leaves it. `Esc` is
 handled in the capture phase because Excalidraw stops propagation on its own
 container, so it steps aside while the text editor, a modal, or a dropdown is open.
 
+Excalidraw's ☰ menu, ? button, and Library trigger are hidden (`display: none`
+by class name — Excalidraw exposes no prop for it, and a rename there fails
+visibly rather than silently). Library moved into the app's settings menu, next
+to a **Compact interface** toggle that swaps Excalidraw's own button/icon size
+variables. Both live in `features/editor-controls`.
+
 `widgets/canvas-stage` mounts the real Excalidraw editor. It uses Excalidraw's
 own toolbar, style panel, and zoom control — they already sit where the design
 reference puts them, and keeping them means no CSS overrides of vendor class

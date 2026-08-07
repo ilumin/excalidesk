@@ -36,3 +36,26 @@
 .ed-canvas .excalidraw__canvas {
   background: transparent;
 }
+
+/*
+ * Excalidraw has no prop for hiding these, so they go by class name. Unlike a
+ * style override, a rename here fails loudly — the button simply comes back —
+ * rather than quietly breaking the look.
+ *   .main-menu-trigger      the ☰ menu (its actions live in our title bar)
+ *   .help-icon              the ? shortcut sheet
+ *   .default-sidebar-trigger  Library, moved into the settings menu
+ */
+.ed-canvas .main-menu-trigger,
+.ed-canvas .help-icon,
+.ed-canvas .default-sidebar-trigger {
+  display: none;
+}
+
+/* Compact interface — the same sizing variables Excalidraw uses for touch. */
+.ed-canvas[data-compact] .excalidraw.excalidraw {
+  --default-button-size: 1.75rem;
+  --lg-button-size: 1.875rem;
+  --default-icon-size: 0.875rem;
+  --lg-icon-size: 0.875rem;
+  --editor-container-padding: 0.625rem;
+}
