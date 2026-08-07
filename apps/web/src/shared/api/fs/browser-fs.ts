@@ -30,6 +30,7 @@ function sampleTree(root: string): FsNode[] {
 }
 
 const trees = new Map<string, FsNode[]>();
+const contents = new Map<string, string>();
 
 function treeFor(root: string): FsNode[] {
   let tree = trees.get(root);
@@ -79,6 +80,12 @@ export const browserFs: FsBridge = {
   },
   async readTree(path) {
     return treeFor(path);
+  },
+  async readFile(path) {
+    return contents.get(path) ?? null;
+  },
+  async writeFile(path, next) {
+    contents.set(path, next);
   },
   async createFile(parentPath, name) {
     const node = file(`${parentPath}/${name}`);

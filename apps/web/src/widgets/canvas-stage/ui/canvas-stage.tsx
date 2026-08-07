@@ -1,39 +1,113 @@
-import type { ReactNode } from "react";
+import { Excalidraw, serializeAsJSON } from "@excalidraw/excalidraw";
+import type {
+  ExcalidrawImperativeAPI,
+  ExcalidrawInitialDataState,
+} from "@excalidraw/excalidraw/types";
+import { useTheme } from "next-themes";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ToolIsland, ZoomControl } from "@/features/select-tool";
+import { readSketch, writeSketch } from "@/entities/sketch-file";
+import { useTabStore } from "@/entities/tab";
 import { CanvasPanel } from "@/shared/ui";
 
-import { SketchPlaceholder } from "./sketch-placeholder";
+import "@excalidraw/excalidraw/index.css";
+import "./excalidraw-theme.css";
 
-interface CanvasStageProps {
-  /**
-   * MOUNT SEAM — the real Excalidraw canvas goes here:
-   *
-   *   <CanvasStage>
-   *     <Excalidraw theme={theme} initialData={…} onChange={markDirty} />
-   *   </CanvasStage>
-   *
-   * It renders above the dotted background and below the floating controls, so
-   * the tool island and zoom pill stay owned by this shell. Nothing else about
-   * the widget changes when the engine lands; drop `SketchPlaceholder` then.
-   */
-  children?: ReactNode;
-}
+const SAVE_DELAY = 800;
 
-export function CanvasStage({ children }: CanvasStageProps) {
+/**
+ * Excalidraw owns the drawing surface, its own tool island, style panel, and
+ * zoom control — all three already sit where the design reference puts them.
+ * This widget supplies the panel chrome, the dotted background (the scene
+ * renders on a transparent canvas above it), and the file <-> scene wiring.
+ */
+export function CanvasStage() {
+  const { resolvedTheme } = useTheme();
+  const activeTabId = useTabStore((state) => state.activeTabId);
+  const filePath = useTabStore(
+    (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.filePath,
+  );
+  const setDirty = useTabStore((state) => state.setDirty);
+
+  const [scene, setScene] = useState<ExcalidrawInitialDataState | null>(null);
+  const api = useRef<ExcalidrawImperativeAPI | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  /** Serialized scene as last written; null until the first idle after load. */
+  const saved = useRef<string | null>(null);
+
+  useEffect(() => {
+    saved.current = null;
+    if (!filePath) {
+      setScene(null);
+      return;
+    }
+    let cancelled = false;
+    void readSketch(filePath).then((next) => {
+      if (!cancelled) setScene(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [filePath]);
+
+  useEffect(() => () => clearTimeout(saveTimer.current), []);
+
+  // ponytail: debounced write-through rather than an explicit save command —
+  // local files, single writer, no conflict story yet.
+  const scheduleSave = useCallback(() => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const editor = api.current;
+      if (!editor || !filePath || !activeTabId) return;
+      const json = serializeAsJSON(
+        editor.getSceneElements(),
+        editor.getAppState(),
+        editor.getFiles(),
+        "local",
+      );
+      // First settle after opening a file only records the on-disk state, so
+      // merely viewing a sketch never rewrites it.
+      if (saved.current === null || json === saved.current) {
+        saved.current = json;
+        setDirty(activeTabId, false);
+        return;
+      }
+      void writeSketch(filePath, json).then(() => {
+        saved.current = json;
+        setDirty(activeTabId, false);
+      });
+    }, SAVE_DELAY);
+  }, [activeTabId, filePath, setDirty]);
+
   return (
     <CanvasPanel>
-      <div className="relative flex-1 overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: "radial-gradient(var(--ed-dots) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-          }}
-        />
-        {children ?? <SketchPlaceholder />}
-        <ToolIsland />
-        <ZoomControl />
+      <div
+        className="ed-canvas relative flex-1 overflow-hidden"
+        style={{
+          backgroundImage: "radial-gradient(var(--ed-dots) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      >
+        {filePath && scene ? (
+          <Excalidraw
+            // Remount on tab switch so each sketch gets its own scene + history.
+            key={activeTabId}
+            excalidrawAPI={(editor) => {
+              api.current = editor;
+            }}
+            initialData={{
+              ...scene,
+              appState: { ...scene.appState, viewBackgroundColor: "transparent" },
+              scrollToContent: true,
+            }}
+            theme={resolvedTheme === "dark" ? "dark" : "light"}
+            UIOptions={{ canvasActions: { changeViewBackgroundColor: false, loadScene: false } }}
+            onChange={() => {
+              if (activeTabId && saved.current !== null) setDirty(activeTabId, true);
+              scheduleSave();
+            }}
+          />
+        ) : null}
       </div>
     </CanvasPanel>
   );

@@ -73,15 +73,22 @@ app/        # boot + screen selection, design tokens (app/styles/tokens.css)
 pages/      # welcome, vault-error, workspace
 widgets/    # title-bar, file-tree-sidebar, canvas-stage
 features/   # open-folder, toggle-sidebar, switch-theme, tab-management,
-            # file-tree-context-menu, select-tool
-entities/   # vault, sketch-file, tab, tool
+            # file-tree-context-menu
+entities/   # vault, sketch-file, tab
 shared/     # ui kit, lib, api/fs
 ```
 
 Filesystem access lives behind `shared/api/fs` (interface + browser stub) and
-`entities/vault/api`. The desktop shell supplies the real implementation on
-`window.excalidesk.fs`; nothing above that boundary touches Node APIs. The
-Excalidraw canvas mounts as `children` of `widgets/canvas-stage`.
+`entities/vault/api` / `entities/sketch-file/api`. The desktop shell supplies the
+real implementation on `window.excalidesk.fs`; nothing above that boundary
+touches Node APIs.
+
+`widgets/canvas-stage` mounts the real Excalidraw editor. It uses Excalidraw's
+own toolbar, style panel, and zoom control — they already sit where the design
+reference puts them, and keeping them means no CSS overrides of vendor class
+names. Only Excalidraw's public theming variables are reassigned, in
+`widgets/canvas-stage/ui/excalidraw-theme.css`. Scenes load from and write back
+to the active tab's file on an 800 ms debounce.
 
 Design tokens from the handoff are CSS custom properties in
 `apps/web/src/app/styles/tokens.css`, exposed as Tailwind `ed-*` colors and

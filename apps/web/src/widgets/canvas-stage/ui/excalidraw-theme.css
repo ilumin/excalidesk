@@ -1,0 +1,38 @@
+/*
+ * Pulls Excalidraw's UI onto the Excalidesk palette. Only its own public theming
+ * variables are reassigned — no overrides of its internal class names, so this
+ * survives upgrades. Doubled `.excalidraw` keeps us ahead of `.excalidraw.theme--dark`.
+ */
+.ed-canvas .excalidraw.excalidraw {
+  /* Excalidraw's indigo brand → the Excalidesk accent. */
+  --color-primary: var(--ed-accent);
+  --color-primary-darker: var(--ed-accent-ink);
+  --color-primary-darkest: var(--ed-accent-ink);
+  --color-primary-hover: var(--ed-accent-ink);
+  --color-primary-light: var(--ed-accent-chip);
+  --color-primary-light-darker: var(--ed-accent-bg);
+  --color-brand-hover: var(--ed-accent-ink);
+  --color-brand-active: var(--ed-accent-ink);
+  --color-selection: var(--ed-accent);
+  --color-logo-icon: var(--ed-accent);
+
+  /* Islands, toolbar container, hover fills. */
+  --island-bg-color: var(--ed-surface);
+  --default-bg-color: var(--ed-surface);
+  --color-surface-lowest: var(--ed-surface);
+  --color-surface-low: var(--ed-surface);
+  --color-surface-mid: var(--ed-hover);
+  --color-surface-high: var(--ed-hover);
+  --color-surface-primary-container: var(--ed-accent-chip);
+  --default-border-color: var(--ed-edge-strong);
+  --sidebar-border-color: var(--ed-edge);
+
+  --color-on-surface: var(--ed-ink);
+  --border-radius-lg: 10px;
+}
+
+/* The dotted background lives on the wrapper, so the scene canvas stays clear. */
+.ed-canvas .excalidraw,
+.ed-canvas .excalidraw__canvas {
+  background: transparent;
+}

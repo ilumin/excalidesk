@@ -19,6 +19,9 @@ export interface FsBridge {
   pickFile(extensions: string[]): Promise<string | null>;
   exists(path: string): Promise<boolean>;
   readTree(path: string): Promise<FsNode[]>;
+  /** Returns null when the file does not exist yet (a new, unsaved sketch). */
+  readFile(path: string): Promise<string | null>;
+  writeFile(path: string, contents: string): Promise<void>;
   createFile(parentPath: string, name: string): Promise<FsNode>;
   createDirectory(parentPath: string, name: string): Promise<FsNode>;
   rename(path: string, nextName: string): Promise<void>;

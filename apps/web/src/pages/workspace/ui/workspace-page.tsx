@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
 import { useVaultStore } from "@/entities/vault";
-import { useToolShortcuts } from "@/features/select-tool";
 import { useSidebarShortcut, useSidebarStore } from "@/features/toggle-sidebar";
 import { CanvasStage } from "@/widgets/canvas-stage";
 import { FileTreeSidebar } from "@/widgets/file-tree-sidebar";
@@ -11,7 +10,6 @@ export function WorkspacePage() {
   const collapsed = useSidebarStore((state) => state.collapsed);
   const refresh = useVaultStore((state) => state.refresh);
   useSidebarShortcut();
-  useToolShortcuts();
 
   // A folder can move or vanish while the app is in the background.
   useEffect(() => {
