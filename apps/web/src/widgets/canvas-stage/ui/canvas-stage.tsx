@@ -21,7 +21,7 @@ const SAVE_DELAY = 800;
  * This widget supplies the panel chrome, the dotted background (the scene
  * renders on a transparent canvas above it), and the file <-> scene wiring.
  */
-export function CanvasStage() {
+export function CanvasStage({ flush }: { flush?: boolean }) {
   const { resolvedTheme } = useTheme();
   const activeTabId = useTabStore((state) => state.activeTabId);
   const filePath = useTabStore(
@@ -80,7 +80,8 @@ export function CanvasStage() {
   }, [activeTabId, filePath, setDirty]);
 
   return (
-    <CanvasPanel>
+    // Focus mode drops the raised-panel border so the canvas meets the window.
+    <CanvasPanel className={flush ? "rounded-none border-0" : undefined}>
       <div
         className="ed-canvas relative flex-1 overflow-hidden"
         style={{

@@ -1,6 +1,7 @@
 import { cn } from "@excalidesk/ui/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { FocusModeButton } from "@/features/focus-mode";
 import { TabStrip } from "@/features/tab-management";
 import { SidebarToggle, useSidebarStore } from "@/features/toggle-sidebar";
 import { IconButton, TrafficLights } from "@/shared/ui";
@@ -52,7 +53,8 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
         <div className="flex-1" />
       )}
 
-      <div className="flex items-center px-3">
+      <div className="flex items-center gap-0.5 px-3">
+        {workspace ? <FocusModeButton /> : null}
         <SettingsMenu />
       </div>
     </div>

@@ -83,6 +83,11 @@ Filesystem access lives behind `shared/api/fs` (interface + browser stub) and
 real implementation on `window.excalidesk.fs`; nothing above that boundary
 touches Node APIs.
 
+Focus mode (the ⤢ button in the title bar) hides the title bar and sidebar so
+the editor fills the window; the bottom-centre pill or `Esc` leaves it. `Esc` is
+handled in the capture phase because Excalidraw stops propagation on its own
+container, so it steps aside while the text editor, a modal, or a dropdown is open.
+
 `widgets/canvas-stage` mounts the real Excalidraw editor. It uses Excalidraw's
 own toolbar, style panel, and zoom control — they already sit where the design
 reference puts them, and keeping them means no CSS overrides of vendor class
