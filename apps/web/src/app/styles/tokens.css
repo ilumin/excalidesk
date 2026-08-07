@@ -1,0 +1,127 @@
+/*
+ * Excalidesk design tokens (see prototype/README.md).
+ * Light values on :root, dark overrides on .dark — next-themes toggles the class,
+ * which is also what Tailwind's `dark:` variant keys off in this repo.
+ */
+
+:root {
+  --ed-chrome: #f7f7f5;
+  --ed-canvas: #fcfcfa;
+  --ed-surface: #ffffff;
+  --ed-hover: #ecece8;
+  --ed-soft-hover: #f2f2ee;
+  --ed-active: #e7e6e1;
+  --ed-active-ring: #dcdbd5;
+  --ed-edge: #e5e4df;
+  --ed-edge-strong: #e2e2de;
+  --ed-edge-hover: #c9c8c2;
+  --ed-menu-edge: #dedcd6;
+  --ed-ink: #33322f;
+  --ed-ink-strong: #33322f;
+  --ed-muted: #6f6e68;
+  --ed-subtle: #8d8c86;
+  --ed-faint: #a3a29b;
+  --ed-chevron: #c2c1ba;
+  --ed-accent: #4f7dd4;
+  --ed-accent-ink: #2f5cae;
+  --ed-accent-bg: #e9eef8;
+  --ed-accent-chip: #e6edfa;
+  --ed-dirty: #c8a24a;
+  --ed-danger: #b95c30;
+  --ed-danger-ink: #8a3f1c;
+  --ed-danger-body: #96513a;
+  --ed-danger-bg: #fdf6f2;
+  --ed-danger-edge: #f0d9cc;
+  --ed-dots: #e6e5df;
+  --ed-sketch: #1f1f1e;
+  --ed-sketch-alt: #3a6ea8;
+  --ed-window-edge: #d6d5d0;
+  --ed-window-shadow: 0 24px 60px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.08);
+  --ed-tab-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.05);
+  --ed-island-shadow: 0 4px 14px rgb(0 0 0 / 0.07);
+  --ed-popover-shadow: 0 10px 30px rgb(0 0 0 / 0.14);
+}
+
+.dark {
+  --ed-chrome: #161617;
+  --ed-canvas: #232325;
+  --ed-surface: #2a2a2c;
+  --ed-hover: #232325;
+  --ed-soft-hover: #2f2f32;
+  --ed-active: #2a2a2d;
+  --ed-active-ring: #37373b;
+  --ed-edge: #2b2b2d;
+  --ed-edge-strong: #37373b;
+  --ed-edge-hover: #4a4a4e;
+  --ed-menu-edge: #37373b;
+  --ed-ink: #d6d5d1;
+  --ed-ink-strong: #e6e5e1;
+  --ed-muted: #8b8a85;
+  --ed-subtle: #a9a8a3;
+  --ed-faint: #6b6b66;
+  --ed-chevron: #6b6b66;
+  --ed-accent: #7aa2e8;
+  --ed-accent-ink: #9dbcf2;
+  --ed-accent-bg: #1e2836;
+  --ed-accent-chip: #2b3a50;
+  --ed-dirty: #d8a55f;
+  --ed-danger: #d07b4f;
+  --ed-danger-ink: #e0a58a;
+  --ed-danger-body: #c99a85;
+  --ed-danger-bg: #2a1f1a;
+  --ed-danger-edge: #4a332a;
+  --ed-dots: #313134;
+  --ed-sketch: #d9d8d3;
+  --ed-sketch-alt: #7fa8d8;
+  --ed-window-edge: #0e0e0f;
+  --ed-window-shadow: 0 24px 60px rgb(0 0 0 / 0.36), 0 2px 6px rgb(0 0 0 / 0.2);
+  --ed-tab-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 0 0 1px rgb(255 255 255 / 0.05);
+  --ed-island-shadow: 0 4px 14px rgb(0 0 0 / 0.3);
+  --ed-popover-shadow: 0 10px 30px rgb(0 0 0 / 0.5);
+}
+
+@theme inline {
+  --color-ed-chrome: var(--ed-chrome);
+  --color-ed-canvas: var(--ed-canvas);
+  --color-ed-surface: var(--ed-surface);
+  --color-ed-hover: var(--ed-hover);
+  --color-ed-soft-hover: var(--ed-soft-hover);
+  --color-ed-active: var(--ed-active);
+  --color-ed-active-ring: var(--ed-active-ring);
+  --color-ed-edge: var(--ed-edge);
+  --color-ed-edge-strong: var(--ed-edge-strong);
+  --color-ed-edge-hover: var(--ed-edge-hover);
+  --color-ed-menu-edge: var(--ed-menu-edge);
+  --color-ed-ink: var(--ed-ink);
+  --color-ed-ink-strong: var(--ed-ink-strong);
+  --color-ed-muted: var(--ed-muted);
+  --color-ed-subtle: var(--ed-subtle);
+  --color-ed-faint: var(--ed-faint);
+  --color-ed-chevron: var(--ed-chevron);
+  --color-ed-accent: var(--ed-accent);
+  --color-ed-accent-ink: var(--ed-accent-ink);
+  --color-ed-accent-bg: var(--ed-accent-bg);
+  --color-ed-accent-chip: var(--ed-accent-chip);
+  --color-ed-dirty: var(--ed-dirty);
+  --color-ed-danger: var(--ed-danger);
+  --color-ed-danger-ink: var(--ed-danger-ink);
+  --color-ed-danger-body: var(--ed-danger-body);
+  --color-ed-danger-bg: var(--ed-danger-bg);
+  --color-ed-danger-edge: var(--ed-danger-edge);
+  --color-ed-dots: var(--ed-dots);
+  --color-ed-sketch: var(--ed-sketch);
+  --color-ed-sketch-alt: var(--ed-sketch-alt);
+  --color-ed-window-edge: var(--ed-window-edge);
+
+  --font-ui:
+    -apple-system, "Helvetica Neue", Helvetica, sans-serif;
+  --font-hand: Caveat, cursive;
+  --font-mono-path: ui-monospace, Menlo, monospace;
+}
+
+/* The app chrome uses the macOS system stack, not the repo's Inter default. */
+.ed-app {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  color: var(--ed-ink);
+}
