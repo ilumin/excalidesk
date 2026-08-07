@@ -90,9 +90,11 @@ container, so it steps aside while the text editor, a modal, or a dropdown is op
 
 Excalidraw's ☰ menu, ? button, and Library trigger are hidden (`display: none`
 by class name — Excalidraw exposes no prop for it, and a rename there fails
-visibly rather than silently). Library moved into the app's settings menu, next
-to a **Compact interface** toggle that swaps Excalidraw's own button/icon size
-variables. Both live in `features/editor-controls`.
+visibly rather than silently). The actions worth keeping moved into the app's
+settings menu as a Canvas group: Find on canvas, Library, Export as PNG, Clear
+canvas, and a **Compact interface** toggle (on by default) that swaps
+Excalidraw's own button and icon size variables. All in
+`features/editor-controls`.
 
 `widgets/canvas-stage` mounts the real Excalidraw editor. It uses Excalidraw's
 own toolbar, style panel, and zoom control — they already sit where the design

@@ -3,24 +3,47 @@ import { create } from "zustand";
 
 import { loadSetting, saveSetting } from "@/shared/lib";
 
+import { exportScenePng } from "../lib/export-scene";
+
 const COMPACT = "compactEditorUi";
 
 interface EditorState {
   /** Handle to the mounted editor, published by widgets/canvas-stage. */
   api: ExcalidrawImperativeAPI | null;
-  /** Shrinks Excalidraw's buttons and icons. */
+  /** Shrinks Excalidraw's buttons and icons. On by default. */
   compact: boolean;
   setApi: (api: ExcalidrawImperativeAPI | null) => void;
   toggleLibrary: () => void;
+  toggleSearch: () => void;
+  exportPng: (name: string) => void;
+  resetScene: () => void;
   toggleCompact: () => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   api: null,
-  compact: loadSetting(COMPACT, false),
+  compact: loadSetting(COMPACT, true),
   setApi: (api) => set({ api }),
-  // `library` is a tab inside Excalidraw's `default` sidebar, not a sidebar name.
+
+  // `library` and `search` are tabs inside Excalidraw's `default` sidebar —
+  // they are not sidebar names of their own.
   toggleLibrary: () => get().api?.toggleSidebar({ name: "default", tab: "library" }),
+  toggleSearch: () => get().api?.toggleSidebar({ name: "default", tab: "search" }),
+
+  exportPng: (name) => {
+    const api = get().api;
+    if (api) void exportScenePng(api, name);
+  },
+
+  resetScene: () => {
+    const api = get().api;
+    if (!api || !window.confirm("Clear this sketch? This can be undone with ⌘Z.")) return;
+    api.resetScene();
+    // resetScene restores Excalidraw's default white canvas; the dotted
+    // background of the panel needs it transparent again.
+    api.updateScene({ appState: { viewBackgroundColor: "transparent" } });
+  },
+
   toggleCompact: () => {
     const compact = !get().compact;
     saveSetting(COMPACT, compact);
