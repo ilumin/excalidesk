@@ -63,6 +63,39 @@ excalidesk/
 │   ├── ui/          # Shared shadcn/ui components and styles
 ```
 
+### Renderer layout (Feature-Sliced Design)
+
+`apps/web/src` follows FSD — a slice may only import from layers strictly below
+it, and always through the slice's `index.ts`.
+
+```
+app/        # boot + screen selection, design tokens (app/styles/tokens.css)
+pages/      # welcome, vault-error, workspace
+widgets/    # title-bar, file-tree-sidebar, canvas-stage
+features/   # open-folder, toggle-sidebar, switch-theme, tab-management,
+            # file-tree-context-menu, select-tool
+entities/   # vault, sketch-file, tab, tool
+shared/     # ui kit, lib, api/fs
+```
+
+Filesystem access lives behind `shared/api/fs` (interface + browser stub) and
+`entities/vault/api`. The desktop shell supplies the real implementation on
+`window.excalidesk.fs`; nothing above that boundary touches Node APIs. The
+Excalidraw canvas mounts as `children` of `widgets/canvas-stage`.
+
+Design tokens from the handoff are CSS custom properties in
+`apps/web/src/app/styles/tokens.css`, exposed as Tailwind `ed-*` colors and
+switched by the `.dark` class that next-themes toggles.
+
+## Storybook
+
+Every screen and the shared UI primitives have stories, with a toolbar switch
+for light/dark:
+
+```bash
+bun run --cwd apps/web storybook
+```
+
 ## Available Scripts
 
 - `bun run dev`: Start all applications in development mode
