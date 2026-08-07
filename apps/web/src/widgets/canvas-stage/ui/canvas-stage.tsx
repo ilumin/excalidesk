@@ -80,8 +80,8 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   }, [activeTabId, filePath, setDirty]);
 
   return (
-    // Focus mode drops the raised-panel border so the canvas meets the window.
-    <CanvasPanel className={flush ? "rounded-none border-0" : undefined}>
+    // Focus mode drops the inset and border so the canvas meets the window.
+    <CanvasPanel className={flush ? "m-0 rounded-none border-0 shadow-none" : undefined}>
       <div
         className="ed-canvas relative flex-1 overflow-hidden"
         style={{
