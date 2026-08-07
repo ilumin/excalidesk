@@ -1,0 +1,3 @@
+{
+  "extends": "@excalidesk/config/tsconfig.base.json"
+}
