@@ -13,12 +13,17 @@ interface TitleBarProps {
   variant?: "chrome" | "workspace";
 }
 
+// Electrobun's preload moves the window on mousedown inside `.drag`, unless the
+// target sits under `.no-drag`. Inert class names in the browser build.
+const DRAG = "electrobun-webkit-app-region-drag";
+const NO_DRAG = "electrobun-webkit-app-region-no-drag";
+
 export function TitleBar({ variant = "workspace" }: TitleBarProps) {
   const collapsed = useSidebarStore((state) => state.collapsed);
   const workspace = variant === "workspace";
 
   return (
-    <div className="flex h-[46px] flex-none items-center bg-ed-chrome">
+    <div className={cn("flex h-[46px] flex-none items-center bg-ed-chrome", DRAG)}>
       <div
         className={cn(
           "flex items-center gap-2 pr-3 pl-4",
@@ -31,7 +36,7 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
           Excalidesk
         </span>
         {workspace ? (
-          <span className={cn(collapsed ? "ml-1" : "ml-auto")}>
+          <span className={cn(NO_DRAG, collapsed ? "ml-1" : "ml-auto")}>
             <SidebarToggle />
           </span>
         ) : null}
@@ -39,7 +44,7 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
 
       {workspace ? (
         <>
-          <div className="flex items-center gap-0.5 px-1.5">
+          <div className={cn("flex items-center gap-0.5 px-1.5", NO_DRAG)}>
             <IconButton size={24} aria-label="Back">
               <ChevronLeft size={14} strokeWidth={1.6} />
             </IconButton>
@@ -47,13 +52,15 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
               <ChevronRight size={14} strokeWidth={1.6} />
             </IconButton>
           </div>
-          <TabStrip />
+          <div className={cn("flex min-w-0 flex-1 items-center", NO_DRAG)}>
+            <TabStrip />
+          </div>
         </>
       ) : (
         <div className="flex-1" />
       )}
 
-      <div className="flex items-center gap-0.5 px-3">
+      <div className={cn("flex items-center gap-0.5 px-3", NO_DRAG)}>
         {workspace ? <FocusModeButton /> : null}
         <SettingsMenu />
       </div>

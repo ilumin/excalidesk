@@ -9,7 +9,8 @@
     "build": "turbo run build -F web && electrobun build",
     "build:stable": "turbo run build -F web && electrobun build --env=stable",
     "build:canary": "turbo run build -F web && electrobun build --env=canary",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "electrobun": "^1.18.1"

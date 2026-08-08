@@ -30,3 +30,26 @@ export interface FsBridge {
   trash(path: string): Promise<void>;
   reveal(path: string): Promise<void>;
 }
+
+/**
+ * Settings ride the same seam. Under `views://` the webview's `localStorage` is
+ * thrown away on quit, so the desktop build keeps them in a bun-side JSON file.
+ */
+export interface SettingsBridge {
+  readSettings(): Promise<Record<string, unknown>>;
+  writeSettings(settings: Record<string, unknown>): Promise<void>;
+}
+
+export type DesktopApi = FsBridge & SettingsBridge;
+
+/**
+ * The same contract as an RPC request map — one request per method, params are
+ * the argument tuple. Both sides of the electrobun seam build their schema from
+ * this, so a signature change breaks type-check in the bun process too.
+ */
+export type DesktopRequests = {
+  [K in keyof DesktopApi]: {
+    params: Parameters<DesktopApi[K]>;
+    response: Awaited<ReturnType<DesktopApi[K]>>;
+  };
+};

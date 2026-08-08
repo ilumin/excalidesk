@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  // Relative so the packaged `views://mainview/index.html` resolves its assets.
+  base: "./",
   server: {
     port: 3001,
   },

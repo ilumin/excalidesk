@@ -7,7 +7,9 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // Type-only: the FsBridge contract lives with the renderer that consumes it.
+      "@web/*": ["../web/src/*"]
     }
   },
   "include": ["src/**/*.ts", "electrobun.config.ts"]

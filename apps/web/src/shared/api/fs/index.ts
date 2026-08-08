@@ -1,5 +1,6 @@
 import { browserFs } from "./browser-fs";
-import type { FsBridge } from "./types";
+import { createDesktopApi } from "./desktop-fs";
+import type { FsBridge, SettingsBridge } from "./types";
 
 declare global {
   interface Window {
@@ -7,6 +8,22 @@ declare global {
   }
 }
 
-export const fs: FsBridge = globalThis.window?.excalidesk?.fs ?? browserFs;
+/**
+ * `window.__electrobun` is injected by the desktop preload; without it this is a
+ * plain browser (or Storybook), which gets the in-memory sample vault.
+ */
+const desktop = globalThis.window?.__electrobun ? createDesktopApi() : null;
 
-export type { FsBridge, FsNode, FsNodeKind } from "./types";
+export const fs: FsBridge = globalThis.window?.excalidesk?.fs ?? desktop ?? browserFs;
+
+/** Null in the browser, where `localStorage` already outlives the session. */
+export const desktopSettings: SettingsBridge | null = desktop;
+
+export type {
+  DesktopApi,
+  DesktopRequests,
+  FsBridge,
+  FsNode,
+  FsNodeKind,
+  SettingsBridge,
+} from "./types";
