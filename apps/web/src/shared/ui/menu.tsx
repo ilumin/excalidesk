@@ -2,7 +2,7 @@ import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { cn } from "@excalidesk/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
@@ -102,6 +102,25 @@ export function MenuItem({ children, icon: Icon, shortcut, checked, onClick }: M
         <span className="ml-auto text-[11px] text-ed-faint">{shortcut}</span>
       ) : null}
     </MenuPrimitive.Item>
+  );
+}
+
+/** Submenus reuse `MenuContent` for their popup — pass `side="right"`. */
+export const MenuSub = MenuPrimitive.SubmenuRoot;
+
+export function MenuSubTrigger({ children, icon: Icon }: { children: ReactNode; icon?: LucideIcon }) {
+  return (
+    <MenuPrimitive.SubmenuTrigger
+      className={cn(
+        "flex h-[29px] cursor-default select-none items-center gap-[9px] rounded-[6px] px-[9px]",
+        "text-[12.5px] text-ed-ink outline-none",
+        "data-highlighted:bg-ed-soft-hover data-popup-open:bg-ed-soft-hover",
+      )}
+    >
+      {Icon ? <Icon size={14} strokeWidth={1.4} className="text-ed-subtle" /> : null}
+      <span>{children}</span>
+      <ChevronRight size={13} strokeWidth={1.6} className="ml-auto text-ed-faint" />
+    </MenuPrimitive.SubmenuTrigger>
   );
 }
 

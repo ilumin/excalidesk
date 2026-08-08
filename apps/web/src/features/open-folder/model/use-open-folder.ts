@@ -6,12 +6,17 @@ import { parentPath } from "@/shared/lib";
 
 export function useOpenFolder() {
   const openVault = useVaultStore((state) => state.open);
+  const closeVault = useVaultStore((state) => state.close);
   const openTab = useTabStore((state) => state.open);
+  const resetTabs = useTabStore((state) => state.reset);
 
   const openFolder = useCallback(async () => {
     const path = await pickVaultFolder();
-    if (path) await openVault(path);
-  }, [openVault]);
+    if (!path) return;
+    // Tabs point into the old folder, so they leave with it.
+    resetTabs([]);
+    await openVault(path);
+  }, [openVault, resetTabs]);
 
   /**
    * ponytail: "Create new folder" reuses the directory picker — the native save
@@ -23,9 +28,23 @@ export function useOpenFolder() {
   const openSingleFile = useCallback(async () => {
     const file = await pickSketchFile();
     if (!file) return;
+    resetTabs([]);
     await openVault(parentPath(file));
     openTab(file, true);
-  }, [openTab, openVault]);
+  }, [openTab, openVault, resetTabs]);
 
-  return { openFolder, createNewFolder, openSingleFile, openPath: openVault };
+  const openRecent = useCallback(
+    async (path: string) => {
+      resetTabs([]);
+      await openVault(path);
+    },
+    [openVault, resetTabs],
+  );
+
+  const close = useCallback(() => {
+    resetTabs([]);
+    closeVault();
+  }, [closeVault, resetTabs]);
+
+  return { openFolder, createNewFolder, openSingleFile, openPath: openRecent, close };
 }

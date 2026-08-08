@@ -14,5 +14,7 @@ export {
   MenuItem,
   MenuLabel,
   MenuSeparator,
+  MenuSub,
+  MenuSubTrigger,
   MenuTrigger,
 } from "./menu";

@@ -38,10 +38,15 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   /** Serialized scene as last written; null until the first idle after load. */
   const saved = useRef<string | null>(null);
 
+  // The published handle must not outlive the editor it points at, or the
+  // settings menu keeps offering canvas actions after the vault is closed.
+  useEffect(() => () => setEditorApi(null), [setEditorApi]);
+
   useEffect(() => {
     saved.current = null;
     if (!filePath) {
       setScene(null);
+      setEditorApi(null);
       return;
     }
     let cancelled = false;
@@ -51,7 +56,7 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [filePath]);
+  }, [filePath, setEditorApi]);
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
 

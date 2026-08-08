@@ -18,6 +18,8 @@ interface VaultState {
   open: (path: string) => Promise<void>;
   /** Re-index on window focus; a folder that vanished drops back to `missing`. */
   refresh: () => Promise<void>;
+  /** Forgets the open folder and returns to the welcome screen. */
+  close: () => void;
 }
 
 const LAST_FOLDER = "lastFolderPath";
@@ -66,5 +68,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     const { path } = get();
     if (!path) return;
     set(await readVault(path));
+  },
+
+  close() {
+    saveSetting(LAST_FOLDER, null);
+    set({ status: "none", path: null, name: "", tree: [] });
   },
 }));

@@ -1,8 +1,9 @@
 import { Settings } from "lucide-react";
 
 import { EditorMenuItems } from "@/features/editor-controls";
+import { VaultMenuItems } from "@/features/open-folder";
 import { ThemeMenuItems } from "@/features/switch-theme";
-import { IconButton, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/shared/ui";
+import { IconButton, Menu, MenuContent, MenuTrigger } from "@/shared/ui";
 
 export function SettingsMenu() {
   return (
@@ -14,14 +15,13 @@ export function SettingsMenu() {
           </IconButton>
         }
       />
-      <MenuContent width={210} align="end" sideOffset={8} alignOffset={-2}>
+      <MenuContent width={230} align="end" sideOffset={8} alignOffset={-2}>
+        {/* Each group carries its own leading separator: both render nothing
+            until there is a vault or a mounted editor, and a trailing rule
+            with no group under it would look broken. */}
         <ThemeMenuItems />
-        {/* Carries its own leading separator — it renders nothing until an
-            editor is mounted, and two rules in a row would look broken. */}
         <EditorMenuItems />
-        <MenuSeparator />
-        <MenuItem>Vault settings</MenuItem>
-        <MenuItem shortcut="⌘,">Preferences</MenuItem>
+        <VaultMenuItems />
       </MenuContent>
     </Menu>
   );

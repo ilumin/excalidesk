@@ -83,6 +83,11 @@ Filesystem access lives behind `shared/api/fs` (interface + browser stub) and
 real implementation on `window.excalidesk.fs`; nothing above that boundary
 touches Node APIs.
 
+The settings menu is the app's only settings surface — Appearance, Canvas, and
+Vault (open another folder, recent vaults, close vault) as inline groups. Each
+group renders only when it has something to act on. There is no preferences
+dialog: every setting fits in the menu, and an empty window would be worse.
+
 Focus mode (the ⤢ button in the title bar) hides the title bar and sidebar so
 the editor fills the window; the bottom-centre pill or `Esc` leaves it. `Esc` is
 handled in the capture phase because Excalidraw stops propagation on its own
