@@ -52,3 +52,59 @@ test("reopening a file activates its existing tab instead of duplicating", () =>
   expect(titles()).toEqual(["a", "b"]);
   expect(useTabStore.getState().activeTabId).toBe(A);
 });
+
+const paths = () => useTabStore.getState().tabs.map((tab) => tab.filePath);
+
+test("retarget follows a renamed file, title and all", () => {
+  useTabStore.getState().open(A, "permanent");
+  useTabStore.getState().retarget(A, "/v/renamed.excalidraw");
+
+  const [tab] = useTabStore.getState().tabs;
+  expect(tab?.filePath).toBe("/v/renamed.excalidraw");
+  expect(tab?.id).toBe("/v/renamed.excalidraw");
+  expect(titles()).toEqual(["renamed"]);
+  expect(useTabStore.getState().activeTabId).toBe("/v/renamed.excalidraw");
+});
+
+test("retarget follows every tab inside a moved directory, keeping them distinct", () => {
+  const { open } = useTabStore.getState();
+  open("/v/Work/a.excalidraw", "permanent");
+  open("/v/Work/Deep/b.excalidraw", "permanent");
+  useTabStore.getState().retarget("/v/Work", "/v/Archive/Work");
+
+  expect(paths()).toEqual(["/v/Archive/Work/a.excalidraw", "/v/Archive/Work/Deep/b.excalidraw"]);
+  expect(new Set(useTabStore.getState().tabs.map((tab) => tab.id)).size).toBe(2);
+});
+
+test("retarget leaves a merely similar prefix alone", () => {
+  useTabStore.getState().open("/v/Workshop/a.excalidraw", "permanent");
+  useTabStore.getState().retarget("/v/Work", "/v/Archive");
+
+  expect(paths()).toEqual(["/v/Workshop/a.excalidraw"]);
+});
+
+test("retarget preserves dirty state", () => {
+  useTabStore.getState().open(A, "permanent");
+  useTabStore.getState().setDirty(A, true);
+  useTabStore.getState().retarget(A, "/v/renamed.excalidraw");
+
+  expect(useTabStore.getState().tabs[0]?.isDirty).toBe(true);
+});
+
+test("dropUnder closes tabs for a trashed folder and activates a survivor", () => {
+  const { open } = useTabStore.getState();
+  open(A, "permanent");
+  open("/v/Work/gone.excalidraw", "permanent");
+  useTabStore.getState().dropUnder("/v/Work");
+
+  expect(paths()).toEqual([A]);
+  expect(useTabStore.getState().activeTabId).toBe(A);
+});
+
+test("dropUnder clears the active tab when nothing survives", () => {
+  useTabStore.getState().open("/v/Work/gone.excalidraw", "permanent");
+  useTabStore.getState().dropUnder("/v/Work");
+
+  expect(paths()).toEqual([]);
+  expect(useTabStore.getState().activeTabId).toBeNull();
+});

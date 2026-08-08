@@ -9,6 +9,7 @@ import {
   useVaultStore,
 } from "@/entities/vault";
 import { SKETCH_EXTENSION } from "@/entities/sketch-file";
+import { useTabStore } from "@/entities/tab";
 import { basename, parentPath } from "@/shared/lib";
 
 /**
@@ -45,6 +46,8 @@ export function useTreeActions() {
       const next = window.prompt("Rename to", basename(path));
       if (!next || next === basename(path)) return;
       await renameEntry(path, next);
+      // Before the refresh, so no render sees a tab pointing at the old path.
+      useTabStore.getState().retarget(path, `${parentPath(path)}/${next}`);
       await refresh();
     },
     [refresh],
@@ -54,6 +57,7 @@ export function useTreeActions() {
     async (path: string) => {
       if (!window.confirm(`Move "${basename(path)}" to the Trash?`)) return;
       await trashEntry(path);
+      useTabStore.getState().dropUnder(path);
       await refresh();
     },
     [refresh],

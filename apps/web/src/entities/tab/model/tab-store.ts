@@ -23,8 +23,20 @@ interface TabState {
   keep: (id: string) => void;
   createUntitled: (parentPath: string) => void;
   setDirty: (id: string, isDirty: boolean) => void;
+  /**
+   * Follows an entry that moved on disk, including every tab inside a renamed
+   * or moved directory. Without this the canvas keeps writing to the old path
+   * and recreates the file it was just renamed away from.
+   */
+  retarget: (fromPath: string, toPath: string) => void;
+  /** Closes tabs for a deleted entry and anything that was inside it. */
+  dropUnder: (path: string) => void;
   reset: (tabs: Tab[], activeTabId?: string | null) => void;
 }
+
+/** True for the entry itself and anything nested below it. */
+const isAtOrUnder = (path: string, base: string) =>
+  path === base || path.startsWith(`${base}/`);
 
 const OPEN_TABS = "openTabs";
 
@@ -116,6 +128,42 @@ export const useTabStore = create<TabState>((set, get) => ({
     );
     persist(nextTabs);
     set({ tabs: nextTabs });
+  },
+
+  retarget(fromPath, toPath) {
+    const { tabs, activeTabId } = get();
+    if (!tabs.some((tab) => isAtOrUnder(tab.filePath, fromPath))) return;
+
+    // Suffix swap rather than basename juggling, so nesting survives a move.
+    const moved = (path: string) => toPath + path.slice(fromPath.length);
+    const nextTabs = tabs.map((tab) =>
+      isAtOrUnder(tab.filePath, fromPath)
+        ? tabFor(moved(tab.filePath), tab.preview, tab.isDirty)
+        : tab,
+    );
+
+    persist(nextTabs);
+    set({
+      tabs: nextTabs,
+      activeTabId:
+        activeTabId && isAtOrUnder(activeTabId, fromPath) ? moved(activeTabId) : activeTabId,
+    });
+  },
+
+  dropUnder(path) {
+    const { tabs, activeTabId } = get();
+    const nextTabs = tabs.filter((tab) => !isAtOrUnder(tab.filePath, path));
+    if (nextTabs.length === tabs.length) return;
+
+    const index = tabs.findIndex((tab) => tab.id === activeTabId);
+    persist(nextTabs);
+    set({
+      tabs: nextTabs,
+      activeTabId:
+        activeTabId && isAtOrUnder(activeTabId, path)
+          ? (nextTabs[Math.min(index, nextTabs.length - 1)]?.id ?? null)
+          : activeTabId,
+    });
   },
 
   reset(tabs, activeTabId) {

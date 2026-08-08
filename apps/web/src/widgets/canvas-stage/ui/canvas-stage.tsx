@@ -43,6 +43,9 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   useEffect(() => () => setEditorApi(null), [setEditorApi]);
 
   useEffect(() => {
+    // A save queued against the previous path would recreate the file the user
+    // just renamed or moved away from.
+    clearTimeout(saveTimer.current);
     saved.current = null;
     if (!filePath) {
       setScene(null);

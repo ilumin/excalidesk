@@ -2,7 +2,6 @@ import { useCallback } from "react";
 
 import { useTabStore } from "@/entities/tab";
 import { moveEntry, useVaultStore } from "@/entities/vault";
-import { basename } from "@/shared/lib";
 
 import { useTreeStore } from "./tree-store";
 
@@ -19,21 +18,10 @@ export function useMoveEntry() {
       if (alreadyThere || isInside(path, nextParentPath)) return;
 
       const nextPath = await moveEntry(path, nextParentPath);
+      // Any tab pointing at the moved entry — or inside it — has to follow.
+      useTabStore.getState().retarget(path, nextPath);
       expandFolder(nextParentPath);
       await refresh();
-
-      // Any tab pointing at the moved file has to follow it.
-      const { tabs, activeTabId, reset } = useTabStore.getState();
-      const moved = tabs.map((tab) =>
-        tab.filePath === path || tab.filePath.startsWith(`${path}/`)
-          ? {
-              ...tab,
-              id: nextPath,
-              filePath: tab.filePath === path ? nextPath : `${nextPath}/${basename(tab.filePath)}`,
-            }
-          : tab,
-      );
-      reset(moved, activeTabId === path ? nextPath : activeTabId);
     },
     [expandFolder, refresh],
   );
