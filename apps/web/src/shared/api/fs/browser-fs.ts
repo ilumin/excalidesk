@@ -105,6 +105,35 @@ export const browserFs: FsBridge = {
       }
     });
   },
+  async move(path, nextParentPath) {
+    const root = rootOf(path);
+    let moved: FsNode | undefined;
+    walk(treeFor(root), (node, siblings) => {
+      if (node.path === path) {
+        moved = node;
+        siblings.splice(siblings.indexOf(node), 1);
+      }
+    });
+    if (!moved) return path;
+
+    const nextPath = `${nextParentPath}/${moved.name}`;
+    // Re-root the subtree so every descendant path stays consistent.
+    const rebase = (node: FsNode, parent: string) => {
+      node.path = `${parent}/${node.name}`;
+      const body = contents.get(node.path);
+      if (body !== undefined) contents.set(node.path, body);
+      node.children?.forEach((child) => rebase(child, node.path));
+    };
+    const body = contents.get(path);
+    rebase(moved, nextParentPath);
+    if (body !== undefined) {
+      contents.delete(path);
+      contents.set(nextPath, body);
+    }
+    findChildren(root, nextParentPath).push(moved);
+    return nextPath;
+  },
+
   async trash(path) {
     walk(treeFor(rootOf(path)), (node, siblings) => {
       if (node.path === path) siblings.splice(siblings.indexOf(node), 1);

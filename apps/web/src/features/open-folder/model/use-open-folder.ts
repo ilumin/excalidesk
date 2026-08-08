@@ -30,7 +30,7 @@ export function useOpenFolder() {
     if (!file) return;
     resetTabs([]);
     await openVault(parentPath(file));
-    openTab(file, true);
+    openTab(file, "permanent");
   }, [openTab, openVault, resetTabs]);
 
   const openRecent = useCallback(

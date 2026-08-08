@@ -1,6 +1,7 @@
 export {
   createFolder,
   createSketch,
+  moveEntry,
   pickSketchFile,
   pickVaultFolder,
   readVault,

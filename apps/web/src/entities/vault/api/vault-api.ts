@@ -20,5 +20,6 @@ export const createSketch = (parentPath: string, name: string) => fs.createFile(
 export const createFolder = (parentPath: string, name: string) =>
   fs.createDirectory(parentPath, name);
 export const renameEntry = (path: string, nextName: string) => fs.rename(path, nextName);
+export const moveEntry = (path: string, nextParentPath: string) => fs.move(path, nextParentPath);
 export const trashEntry = (path: string) => fs.trash(path);
 export const revealEntry = (path: string) => fs.reveal(path);

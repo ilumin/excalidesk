@@ -83,6 +83,10 @@ Filesystem access lives behind `shared/api/fs` (interface + browser stub) and
 real implementation on `window.excalidesk.fs`; nothing above that boundary
 touches Node APIs.
 
+Files open the way VS Code does: a single click previews into one reusable tab
+(italic title), a double click or the first edit keeps it. Tree rows drag onto
+folders to move; open tabs follow the file.
+
 The settings menu is the app's only settings surface — Appearance, Canvas, and
 Vault (open another folder, recent vaults, close vault) as inline groups. Each
 group renders only when it has something to act on. There is no preferences

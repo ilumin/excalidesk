@@ -23,6 +23,7 @@ export function TabStrip() {
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
   const activate = useTabStore((state) => state.activate);
+  const keep = useTabStore((state) => state.keep);
   const createUntitled = useTabStore((state) => state.createUntitled);
   const vaultPath = useVaultStore((state) => state.path);
   const closeTab = useCloseTab();
@@ -47,6 +48,7 @@ export function TabStrip() {
           tab={tab}
           active={tab.id === activeTabId}
           onActivate={() => activate(tab.id)}
+          onKeep={() => keep(tab.id)}
           onClose={() => closeTab(tab.id)}
         />
       ))}

@@ -25,6 +25,8 @@ export interface FsBridge {
   createFile(parentPath: string, name: string): Promise<FsNode>;
   createDirectory(parentPath: string, name: string): Promise<FsNode>;
   rename(path: string, nextName: string): Promise<void>;
+  /** Moves an entry into `nextParentPath`, keeping its name. */
+  move(path: string, nextParentPath: string): Promise<string>;
   trash(path: string): Promise<void>;
   reveal(path: string): Promise<void>;
 }
