@@ -11,8 +11,9 @@ export function CanvasPanel({ className, ...props }: ComponentProps<"div">) {
     <div
       className={cn(
         "flex min-w-0 flex-1 flex-col overflow-hidden",
-        // Tighter at the top: the title bar already pads below the tabs.
-        "mx-2 mt-1 mb-2 rounded-[11px] border border-ed-edge bg-ed-canvas",
+        // Flush to the title bar, which already pads below the tabs; the inset
+        // on the other three sides is what makes it read as a raised card.
+        "mx-2 mt-0 mb-2 rounded-[11px] border border-ed-edge bg-ed-canvas",
         "shadow-[var(--ed-panel-shadow)]",
         className,
       )}
