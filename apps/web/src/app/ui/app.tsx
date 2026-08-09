@@ -4,6 +4,7 @@ import { useVaultStore } from "@/entities/vault";
 import { VaultErrorPage } from "@/pages/vault-error";
 import { WelcomePage } from "@/pages/welcome";
 import { WorkspacePage } from "@/pages/workspace";
+import { ConfirmDialog } from "@/shared/ui";
 
 /**
  * Boot: read the persisted folder, validate it, and pick the screen.
@@ -18,8 +19,21 @@ export function App() {
     void boot();
   }, [boot]);
 
-  if (!booted) return <div className="h-full bg-ed-chrome" />;
-  if (status === "ready") return <WorkspacePage />;
-  if (status === "missing") return <VaultErrorPage />;
-  return <WelcomePage />;
+  // One mount for the whole app: `confirmAction` drives it from anywhere.
+  const screen = !booted ? (
+    <div className="h-full bg-ed-chrome" />
+  ) : status === "ready" ? (
+    <WorkspacePage />
+  ) : status === "missing" ? (
+    <VaultErrorPage />
+  ) : (
+    <WelcomePage />
+  );
+
+  return (
+    <>
+      {screen}
+      <ConfirmDialog />
+    </>
+  );
 }

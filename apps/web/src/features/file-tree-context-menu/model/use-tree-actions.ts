@@ -11,6 +11,7 @@ import {
 import { SKETCH_EXTENSION } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
 import { basename, parentPath } from "@/shared/lib";
+import { confirmAction } from "@/shared/ui";
 
 import { useDraftStore } from "./draft-store";
 
@@ -64,10 +65,11 @@ export function useTreeActions() {
 
   const remove = useCallback(
     async (path: string) => {
-      // ponytail: `window.confirm` names the page origin in its title, which reads
-      // wrong for a desktop app. electrobun 1.18.1 cannot replace it — its
-      // `Utils.showMessageBox` never returns when called from the bun process.
-      if (!window.confirm(`Move "${basename(path)}" to the Trash?`)) return;
+      const confirmed = await confirmAction(`Move "${basename(path)}" to the Trash?`, {
+        detail: "You can put it back from the Trash.",
+        confirmLabel: "Move to Trash",
+      });
+      if (!confirmed) return;
       await trashEntry(path);
       useTabStore.getState().dropUnder(path);
       await refresh();

@@ -1,5 +1,6 @@
 export { ActionRow } from "./action-row";
 export { CanvasPanel } from "./canvas-panel";
+export { ConfirmDialog, confirmAction } from "./confirm-dialog";
 export { IconButton } from "./icon-button";
 export { Mono } from "./mono";
 export { SectionHeader } from "./section-header";
