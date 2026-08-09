@@ -3,16 +3,22 @@ import { useCallback, useEffect } from "react";
 
 import { TabItem, useTabStore } from "@/entities/tab";
 import { useVaultStore } from "@/entities/vault";
-import { IconButton } from "@/shared/ui";
+import { IconButton, confirmAction } from "@/shared/ui";
 
 function useCloseTab() {
   const close = useTabStore((state) => state.close);
   return useCallback(
-    (id: string) => {
+    async (id: string) => {
       const tab = useTabStore.getState().tabs.find((candidate) => candidate.id === id);
-      // ponytail: native confirm covers "prompts to save"; swap for a sheet when
-      // the save pipeline exists and needs a third "don't save" answer.
-      if (tab?.isDirty && !window.confirm(`Save changes to ${tab.title} before closing?`)) return;
+      if (tab?.isDirty) {
+        // Confirming closes and loses the edits, so the copy says exactly that
+        // rather than asking about saving and then not saving.
+        const discard = await confirmAction(`Close ${tab.title} without saving?`, {
+          detail: "The edits since the last save will be lost.",
+          confirmLabel: "Discard changes",
+        });
+        if (!discard) return;
+      }
       close(id);
     },
     [close],
@@ -33,7 +39,7 @@ export function TabStrip() {
       if (event.key.toLowerCase() === "w" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         const { activeTabId: current } = useTabStore.getState();
-        if (current) closeTab(current);
+        if (current) void closeTab(current);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -49,7 +55,7 @@ export function TabStrip() {
           active={tab.id === activeTabId}
           onActivate={() => activate(tab.id)}
           onKeep={() => keep(tab.id)}
-          onClose={() => closeTab(tab.id)}
+          onClose={() => void closeTab(tab.id)}
         />
       ))}
       <IconButton

@@ -2,6 +2,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { create } from "zustand";
 
 import { loadSetting, saveSetting } from "@/shared/lib";
+import { confirmAction } from "@/shared/ui";
 
 import { exportScenePng } from "../lib/export-scene";
 
@@ -16,7 +17,7 @@ interface EditorState {
   toggleLibrary: () => void;
   toggleSearch: () => void;
   exportPng: (name: string) => void;
-  resetScene: () => void;
+  resetScene: () => Promise<void>;
   toggleCompact: () => void;
 }
 
@@ -35,9 +36,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (api) void exportScenePng(api, name);
   },
 
-  resetScene: () => {
+  resetScene: async () => {
     const api = get().api;
-    if (!api || !window.confirm("Clear this sketch? This can be undone with ⌘Z.")) return;
+    if (!api) return;
+    const confirmed = await confirmAction("Clear this sketch?", {
+      detail: "This can be undone with ⌘Z.",
+      confirmLabel: "Clear",
+    });
+    if (!confirmed) return;
     api.resetScene();
     // resetScene restores Excalidraw's default white canvas; the dotted
     // background of the panel needs it transparent again.

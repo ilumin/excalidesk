@@ -32,7 +32,7 @@ export function EditorMenuItems() {
       <MenuItem icon={ImageDown} onClick={() => store.exportPng(title)}>
         Export as PNG
       </MenuItem>
-      <MenuItem icon={Trash2} onClick={store.resetScene}>
+      <MenuItem icon={Trash2} onClick={() => void store.resetScene()}>
         Clear canvas
       </MenuItem>
       <MenuItem icon={Minimize} checked={compact} onClick={store.toggleCompact}>
