@@ -3,10 +3,11 @@ import type {
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
 } from "@excalidraw/excalidraw/types";
+import { TriangleAlert } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { readSketch, writeSketch } from "@/entities/sketch-file";
+import { emptyScene, readSketch, writeSketch } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
 import { useEditorStore } from "@/features/editor-controls";
 import { CanvasPanel } from "@/shared/ui";
@@ -28,7 +29,15 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   const filePath = useTabStore(
     (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.filePath,
   );
+  // Select the flag, never the tab object: subscribing to the object would
+  // re-render on every `setDirty`, which re-renders Excalidraw, which fires
+  // `onChange`, which sets dirty again — an update loop.
+  const missing = useTabStore(
+    (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.missing === true,
+  );
   const setDirty = useTabStore((state) => state.setDirty);
+  const setMissing = useTabStore((state) => state.setMissing);
+  const markSaved = useTabStore((state) => state.markSaved);
   const setEditorApi = useEditorStore((state) => state.setApi);
   const compact = useEditorStore((state) => state.compact);
 
@@ -54,28 +63,43 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
     }
     let cancelled = false;
     void readSketch(filePath).then((next) => {
-      if (!cancelled) setScene(next);
+      if (cancelled) return;
+      // Nothing on disk is expected for a sketch that has never been saved, and
+      // means the file was deleted underneath us for anything else.
+      if (activeTabId) {
+        const tab = useTabStore.getState().tabs.find((candidate) => candidate.id === activeTabId);
+        setMissing(activeTabId, next === null && tab?.isNew !== true);
+      }
+      setScene(next ?? emptyScene());
     });
     return () => {
       cancelled = true;
     };
-  }, [filePath, setEditorApi]);
+  }, [activeTabId, filePath, setEditorApi, setMissing]);
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
+
+  const serialize = () => {
+    const editor = api.current;
+    if (!editor) return null;
+    return serializeAsJSON(
+      editor.getSceneElements(),
+      editor.getAppState(),
+      editor.getFiles(),
+      "local",
+    );
+  };
 
   // ponytail: debounced write-through rather than an explicit save command —
   // local files, single writer, no conflict story yet.
   const scheduleSave = useCallback(() => {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      const editor = api.current;
-      if (!editor || !filePath || !activeTabId) return;
-      const json = serializeAsJSON(
-        editor.getSceneElements(),
-        editor.getAppState(),
-        editor.getFiles(),
-        "local",
-      );
+      if (!filePath || !activeTabId) return;
+      // The file is gone; recreating it silently is not ours to decide.
+      if (useTabStore.getState().tabs.find((tab) => tab.id === activeTabId)?.missing) return;
+      const json = serialize();
+      if (json === null) return;
       // First settle after opening a file only records the on-disk state, so
       // merely viewing a sketch never rewrites it.
       if (saved.current === null || json === saved.current) {
@@ -85,14 +109,39 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
       }
       void writeSketch(filePath, json).then(() => {
         saved.current = json;
-        setDirty(activeTabId, false);
+        markSaved(activeTabId);
       });
     }, SAVE_DELAY);
-  }, [activeTabId, filePath, setDirty]);
+  }, [activeTabId, filePath, markSaved, setDirty]);
+
+  /** The user's answer to "this file is gone": put it back, then resume. */
+  const restore = () => {
+    const json = serialize();
+    if (!filePath || !activeTabId || json === null) return;
+    void writeSketch(filePath, json).then(() => {
+      saved.current = json;
+      markSaved(activeTabId);
+    });
+  };
 
   return (
     // Focus mode drops the inset and border so the canvas meets the window.
     <CanvasPanel className={flush ? "m-0 rounded-none border-0 shadow-none" : undefined}>
+      {missing ? (
+        <div className="flex flex-none items-center gap-2 border-b border-ed-danger-edge bg-ed-danger-bg px-3 py-2 text-[12px] text-ed-danger-ink">
+          <TriangleAlert size={13} strokeWidth={1.6} className="flex-none text-ed-danger" />
+          <span className="min-w-0 flex-1 truncate">
+            This file is no longer on disk. Edits are not being saved.
+          </span>
+          <button
+            type="button"
+            onClick={restore}
+            className="flex-none rounded-[5px] border border-ed-danger-edge px-2 py-0.5 font-medium hover:bg-ed-danger-body"
+          >
+            Save it back
+          </button>
+        </div>
+      ) : null}
       <div
         className="ed-canvas relative flex-1 overflow-hidden"
         data-compact={compact ? "" : undefined}

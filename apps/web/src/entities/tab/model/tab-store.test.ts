@@ -108,3 +108,26 @@ test("dropUnder clears the active tab when nothing survives", () => {
   expect(paths()).toEqual([]);
   expect(useTabStore.getState().activeTabId).toBeNull();
 });
+
+test("a new sketch is marked isNew, so an absent file is not alarming", () => {
+  useTabStore.getState().createUntitled("/v");
+  expect(useTabStore.getState().tabs[0]?.isNew).toBe(true);
+});
+
+test("markSaved clears new, missing and dirty together", () => {
+  useTabStore.getState().createUntitled("/v");
+  const id = useTabStore.getState().activeTabId!;
+  useTabStore.getState().setMissing(id, true);
+  useTabStore.getState().markSaved(id);
+
+  const [tab] = useTabStore.getState().tabs;
+  expect([tab?.isNew, tab?.missing, tab?.isDirty]).toEqual([false, false, false]);
+});
+
+test("retarget carries the missing flag across a rename", () => {
+  useTabStore.getState().open(A, "permanent");
+  useTabStore.getState().setMissing(A, true);
+  useTabStore.getState().retarget(A, "/v/renamed.excalidraw");
+
+  expect(useTabStore.getState().tabs[0]?.missing).toBe(true);
+});

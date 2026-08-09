@@ -1,5 +1,5 @@
 import { cn } from "@excalidesk/ui/lib/utils";
-import { FileText, X } from "lucide-react";
+import { FileText, FileWarning, X } from "lucide-react";
 
 import type { Tab } from "../model/tab-store";
 
@@ -14,7 +14,7 @@ interface TabItemProps {
 export function TabItem({ tab, active, onActivate, onKeep, onClose }: TabItemProps) {
   return (
     <div
-      title={tab.filePath}
+      title={tab.missing ? `${tab.filePath} — no longer on disk` : tab.filePath}
       onDoubleClick={onKeep}
       className={cn(
         "group flex h-7 flex-none cursor-default items-center gap-[7px] rounded-[7px] px-[9px]",
@@ -29,17 +29,23 @@ export function TabItem({ tab, active, onActivate, onKeep, onClose }: TabItemPro
         onClick={onActivate}
         className="flex min-w-0 items-center gap-[7px] outline-none focus-visible:underline"
       >
-        <FileText
-          size={14}
-          strokeWidth={1.4}
-          className={cn("flex-none", active ? "text-ed-subtle" : "text-ed-faint")}
-        />
+        {tab.missing ? (
+          <FileWarning size={14} strokeWidth={1.4} className="flex-none text-ed-danger" />
+        ) : (
+          <FileText
+            size={14}
+            strokeWidth={1.4}
+            className={cn("flex-none", active ? "text-ed-subtle" : "text-ed-faint")}
+          />
+        )}
         <span
           className={cn(
             "max-w-[140px] truncate",
             active && "font-medium",
             // Preview tabs read as provisional, the way VS Code marks them.
             tab.preview && "italic",
+            // The file is gone: struck through, the way a dead link reads.
+            tab.missing && "text-ed-danger line-through decoration-from-font",
           )}
         >
           {tab.title}

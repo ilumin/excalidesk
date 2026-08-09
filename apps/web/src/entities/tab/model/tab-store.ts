@@ -9,6 +9,13 @@ export interface Tab {
   isDirty: boolean;
   /** VS Code-style preview: italic, and the next single click reuses this slot. */
   preview: boolean;
+  /**
+   * Never written to disk. A new sketch has no file until its first save, which
+   * is what tells an untitled tab apart from one whose file was deleted.
+   */
+  isNew?: boolean;
+  /** Had a file, and it is gone. Saving is held until the user asks for it. */
+  missing?: boolean;
 }
 
 export type OpenMode = "preview" | "permanent";
@@ -23,6 +30,10 @@ interface TabState {
   keep: (id: string) => void;
   createUntitled: (parentPath: string) => void;
   setDirty: (id: string, isDirty: boolean) => void;
+  /** The file is not on disk and the tab expected it to be. */
+  setMissing: (id: string, missing: boolean) => void;
+  /** A successful write: no longer new, no longer missing, no longer dirty. */
+  markSaved: (id: string) => void;
   /**
    * Follows an entry that moved on disk, including every tab inside a renamed
    * or moved directory. Without this the canvas keeps writing to the old path
@@ -115,7 +126,8 @@ export const useTabStore = create<TabState>((set, get) => ({
     let n = 1;
     while (taken.has(n === 1 ? "Untitled" : `Untitled ${n}`)) n += 1;
     const name = n === 1 ? "Untitled" : `Untitled ${n}`;
-    const next = tabFor(`${parentPath}/${name}.excalidraw`, false, true);
+    // `isNew` until the first write — an absent file is expected, not a loss.
+    const next = { ...tabFor(`${parentPath}/${name}.excalidraw`, false, true), isNew: true };
     const nextTabs = [...tabs, next];
     persist(nextTabs);
     set({ tabs: nextTabs, activeTabId: next.id });
@@ -130,6 +142,23 @@ export const useTabStore = create<TabState>((set, get) => ({
     set({ tabs: nextTabs });
   },
 
+  setMissing(id, missing) {
+    const { tabs } = get();
+    // Opening a tab re-checks the file, so bail unless the answer changed.
+    if (!tabs.some((tab) => tab.id === id && (tab.missing ?? false) !== missing)) return;
+    const nextTabs = tabs.map((tab) => (tab.id === id ? { ...tab, missing } : tab));
+    persist(nextTabs);
+    set({ tabs: nextTabs });
+  },
+
+  markSaved(id) {
+    const nextTabs = get().tabs.map((tab) =>
+      tab.id === id ? { ...tab, isDirty: false, isNew: false, missing: false } : tab,
+    );
+    persist(nextTabs);
+    set({ tabs: nextTabs });
+  },
+
   retarget(fromPath, toPath) {
     const { tabs, activeTabId } = get();
     if (!tabs.some((tab) => isAtOrUnder(tab.filePath, fromPath))) return;
@@ -138,7 +167,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     const moved = (path: string) => toPath + path.slice(fromPath.length);
     const nextTabs = tabs.map((tab) =>
       isAtOrUnder(tab.filePath, fromPath)
-        ? tabFor(moved(tab.filePath), tab.preview, tab.isDirty)
+        ? { ...tab, ...tabFor(moved(tab.filePath), tab.preview, tab.isDirty) }
         : tab,
     );
 

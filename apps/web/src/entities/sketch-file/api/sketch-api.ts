@@ -2,13 +2,23 @@ import type { ExcalidrawInitialDataState } from "@excalidraw/excalidraw/types";
 
 import { fs } from "@/shared/api/fs";
 
+export const emptyScene = (): ExcalidrawInitialDataState => ({
+  elements: [],
+  appState: {},
+  files: {},
+});
+
 /**
- * Reads a sketch into Excalidraw's `initialData` shape. A file that does not
- * exist yet (a new untitled tab) opens as an empty scene rather than an error.
+ * Reads a sketch into Excalidraw's `initialData` shape.
+ *
+ * Returns null when there is nothing on disk. That is normal for a new untitled
+ * tab and alarming for anything else, so the caller decides — this is the only
+ * place that can tell the two apart.
  */
-export async function readSketch(path: string): Promise<ExcalidrawInitialDataState> {
+export async function readSketch(path: string): Promise<ExcalidrawInitialDataState | null> {
   const raw = await fs.readFile(path);
-  if (!raw) return { elements: [], appState: {}, files: {} };
+  if (raw === null) return null;
+  if (!raw) return emptyScene();
   try {
     const parsed = JSON.parse(raw) as ExcalidrawInitialDataState;
     return {
@@ -19,7 +29,7 @@ export async function readSketch(path: string): Promise<ExcalidrawInitialDataSta
   } catch {
     // A corrupt file should not take the app down — open it empty so the user
     // has to overwrite it deliberately.
-    return { elements: [], appState: {}, files: {} };
+    return emptyScene();
   }
 }
 
