@@ -55,7 +55,7 @@ export function TreeItemContextMenu({
   return (
     <ContextMenu>
       <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <MenuContent align="start" side="right" sideOffset={2}>
+      <MenuContent align="start" side="right" sideOffset={2} finalFocus={false}>
         <Items node={node} />
       </MenuContent>
     </ContextMenu>
@@ -73,7 +73,7 @@ export function TreeItemMenuButton({ node }: { node: TreeNodeRef }) {
       >
         <MoreHorizontal size={14} />
       </MenuTrigger>
-      <MenuContent align="start" side="bottom" sideOffset={4}>
+      <MenuContent align="start" side="bottom" sideOffset={4} finalFocus={false}>
         <Items node={node} />
       </MenuContent>
     </Menu>

@@ -23,6 +23,11 @@ interface MenuContentProps {
   side?: "top" | "bottom" | "left" | "right";
   sideOffset?: number;
   alignOffset?: number;
+  /**
+   * Closing normally hands focus back to the trigger. Pass `false` when the
+   * item being clicked focuses something itself, such as an inline rename.
+   */
+  finalFocus?: boolean;
 }
 
 export function MenuContent({
@@ -32,6 +37,7 @@ export function MenuContent({
   side = "bottom",
   sideOffset = 8,
   alignOffset = 0,
+  finalFocus,
 }: MenuContentProps) {
   return (
     <MenuPrimitive.Portal>
@@ -43,6 +49,7 @@ export function MenuContent({
         alignOffset={alignOffset}
       >
         <MenuPrimitive.Popup
+          finalFocus={finalFocus}
           style={width ? { width } : undefined}
           className={cn(
             "min-w-[180px] rounded-[9px] border border-ed-menu-edge bg-ed-surface p-[5px]",

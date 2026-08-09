@@ -2,7 +2,12 @@ import type { DragEvent } from "react";
 
 import { TreeRow, type SketchNode } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
-import { TreeItemContextMenu, TreeItemMenuButton } from "@/features/file-tree-context-menu";
+import {
+  TreeItemContextMenu,
+  TreeItemMenuButton,
+  useDraftStore,
+  useTreeActions,
+} from "@/features/file-tree-context-menu";
 import { parentPath } from "@/shared/lib";
 
 import { useTreeStore } from "../model/tree-store";
@@ -13,9 +18,11 @@ const MIME = "application/x-excalidesk-path";
 interface FileTreeProps {
   nodes: SketchNode[];
   depth?: number;
+  /** Which folder these nodes belong to, so a "create" draft lands in it. */
+  parentPath?: string;
 }
 
-export function FileTree({ nodes, depth = 0 }: FileTreeProps) {
+export function FileTree({ nodes, depth = 0, parentPath: folderPath }: FileTreeProps) {
   const expanded = useTreeStore((state) => state.expanded);
   const toggleFolder = useTreeStore((state) => state.toggleFolder);
   const activeFolderPath = useTreeStore((state) => state.activeFolderPath);
@@ -27,6 +34,9 @@ export function FileTree({ nodes, depth = 0 }: FileTreeProps) {
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
   const move = useMoveEntry();
+  const draft = useDraftStore((state) => state.draft);
+  const { commitDraft, cancelDraft } = useTreeActions();
+  const editingHere = draft?.mode === "create" && draft.parentPath === folderPath;
 
   return (
     <>
@@ -60,6 +70,11 @@ export function FileTree({ nodes, depth = 0 }: FileTreeProps) {
                 selected={!isDirectory && tab?.id === activeTabId}
                 dirty={tab?.isDirty === true}
                 dropTarget={isDirectory && dropTargetPath === node.path}
+                editing={
+                  draft?.mode === "rename" && draft.path === node.path
+                    ? { onCommit: (name) => void commitDraft(name), onCancel: cancelDraft }
+                    : undefined
+                }
                 trailing={
                   isActiveFolder ? (
                     <TreeItemMenuButton node={{ path: node.path, kind: node.kind }} />
@@ -95,12 +110,21 @@ export function FileTree({ nodes, depth = 0 }: FileTreeProps) {
                 }}
               />
             </TreeItemContextMenu>
-            {isDirectory && isOpen && node.children?.length ? (
-              <FileTree nodes={node.children} depth={depth + 1} />
+            {isDirectory && isOpen ? (
+              <FileTree nodes={node.children ?? []} depth={depth + 1} parentPath={node.path} />
             ) : null}
           </div>
         );
       })}
+
+      {editingHere ? (
+        <TreeRow
+          name=""
+          kind={draft.kind}
+          depth={depth}
+          editing={{ onCommit: (name) => void commitDraft(name), onCancel: cancelDraft }}
+        />
+      ) : null}
     </>
   );
 }

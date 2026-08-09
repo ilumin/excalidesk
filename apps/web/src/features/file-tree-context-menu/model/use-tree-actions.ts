@@ -12,49 +12,61 @@ import { SKETCH_EXTENSION } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
 import { basename, parentPath } from "@/shared/lib";
 
+import { useDraftStore } from "./draft-store";
+
 /**
- * ponytail: `prompt`/`confirm` are the native affordances for a rename and a
- * destructive confirm. Replace with in-app dialogs only when the copy needs to
- * change; the call sites stay the same.
+ * Naming happens inline in the tree, the way a file explorer does it: these
+ * actions only open the draft, and `commitDraft` is what touches disk.
  */
 export function useTreeActions() {
   const refresh = useVaultStore((state) => state.refresh);
   const vaultPath = useVaultStore((state) => state.path);
+  const startDraft = useDraftStore((state) => state.startDraft);
+  const cancelDraft = useDraftStore((state) => state.cancelDraft);
 
   const newFile = useCallback(
-    async (parent: string) => {
-      const name = window.prompt("New sketch name", `Untitled${SKETCH_EXTENSION}`);
-      if (!name) return;
-      await createSketch(parent, name.endsWith(SKETCH_EXTENSION) ? name : name + SKETCH_EXTENSION);
-      await refresh();
-    },
-    [refresh],
+    (parent: string) => startDraft({ mode: "create", parentPath: parent, kind: "file" }),
+    [startDraft],
   );
 
   const newFolder = useCallback(
-    async (parent: string) => {
-      const name = window.prompt("New folder name", "Untitled");
-      if (!name) return;
-      await createFolder(parent, name);
-      await refresh();
-    },
-    [refresh],
+    (parent: string) => startDraft({ mode: "create", parentPath: parent, kind: "directory" }),
+    [startDraft],
   );
 
   const rename = useCallback(
-    async (path: string) => {
-      const next = window.prompt("Rename to", basename(path));
-      if (!next || next === basename(path)) return;
-      await renameEntry(path, next);
-      // Before the refresh, so no render sees a tab pointing at the old path.
-      useTabStore.getState().retarget(path, `${parentPath(path)}/${next}`);
+    (path: string) => startDraft({ mode: "rename", path, name: basename(path) }),
+    [startDraft],
+  );
+
+  const commitDraft = useCallback(
+    async (name: string) => {
+      const { draft } = useDraftStore.getState();
+      cancelDraft();
+      if (!draft) return;
+
+      if (draft.mode === "rename") {
+        if (name === draft.name) return;
+        await renameEntry(draft.path, name);
+        // Before the refresh, so no render sees a tab pointing at the old path.
+        useTabStore.getState().retarget(draft.path, `${parentPath(draft.path)}/${name}`);
+      } else if (draft.kind === "directory") {
+        await createFolder(draft.parentPath, name);
+      } else {
+        const file = name.endsWith(SKETCH_EXTENSION) ? name : name + SKETCH_EXTENSION;
+        await createSketch(draft.parentPath, file);
+      }
+
       await refresh();
     },
-    [refresh],
+    [cancelDraft, refresh],
   );
 
   const remove = useCallback(
     async (path: string) => {
+      // ponytail: `window.confirm` names the page origin in its title, which reads
+      // wrong for a desktop app. electrobun 1.18.1 cannot replace it — its
+      // `Utils.showMessageBox` never returns when called from the bun process.
       if (!window.confirm(`Move "${basename(path)}" to the Trash?`)) return;
       await trashEntry(path);
       useTabStore.getState().dropUnder(path);
@@ -70,6 +82,8 @@ export function useTreeActions() {
       newFile,
       newFolder,
       rename,
+      commitDraft,
+      cancelDraft,
       remove,
       reveal,
       /** Where a "New …" lands when invoked on a node rather than the header. */
@@ -77,6 +91,6 @@ export function useTreeActions() {
         kind === "directory" ? path : parentPath(path),
       vaultPath,
     }),
-    [newFile, newFolder, remove, rename, reveal, vaultPath],
+    [cancelDraft, commitDraft, newFile, newFolder, remove, rename, reveal, vaultPath],
   );
 }

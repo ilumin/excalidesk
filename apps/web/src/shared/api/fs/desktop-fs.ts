@@ -36,7 +36,12 @@ export function createDesktopApi(): DesktopApi {
     get(_target, method) {
       // Never answer `then`: an awaited bridge would otherwise RPC into the void.
       if (typeof method !== "string" || method === "then") return undefined;
-      return async (...args: unknown[]) => (await ready)(method, args);
+      return async (...args: unknown[]) => {
+        // JSON has no `undefined`, so an omitted optional argument would arrive
+        // as `null` and defeat the default parameter on the other side.
+        while (args.length && args.at(-1) === undefined) args.pop();
+        return (await ready)(method, args);
+      };
     },
   });
 }

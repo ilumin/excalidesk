@@ -1,9 +1,9 @@
 import { cn } from "@excalidesk/ui/lib/utils";
 import { Check, FilePlus, FolderPlus } from "lucide-react";
-import type { DragEvent } from "react";
+import { useEffect, type DragEvent } from "react";
 
 import { useVaultStore } from "@/entities/vault";
-import { useTreeActions } from "@/features/file-tree-context-menu";
+import { useDraftStore, useTreeActions } from "@/features/file-tree-context-menu";
 import { basename, relativeTime, tildify } from "@/shared/lib";
 import { SectionHeader } from "@/shared/ui";
 
@@ -19,8 +19,15 @@ export function FileTreeSidebar() {
   const setDragging = useTreeStore((state) => state.setDragging);
   const actions = useTreeActions();
   const move = useMoveEntry();
+  const draft = useDraftStore((state) => state.draft);
+  const expandFolder = useTreeStore((state) => state.expandFolder);
   const root = path ?? "";
   const fullPath = tildify(root);
+
+  // Creating inside a collapsed folder would put the input out of sight.
+  useEffect(() => {
+    if (draft?.mode === "create") expandFolder(draft.parentPath);
+  }, [draft, expandFolder]);
 
   // Dropping on empty space below the tree moves the entry to the vault root.
   const onDragOver = (event: DragEvent) => {
@@ -75,7 +82,7 @@ export function FileTreeSidebar() {
           dropTargetPath === root && "bg-ed-accent-bg/40",
         )}
       >
-        <FileTree nodes={tree} />
+        <FileTree nodes={tree} parentPath={root} />
       </div>
 
       <div className="flex flex-none items-center gap-[7px] border-t border-ed-hover px-4 py-2.5 text-[11px] text-ed-faint">
