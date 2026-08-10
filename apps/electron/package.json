@@ -1,7 +1,7 @@
 {
   "name": "electron",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Excalidesk desktop shell",
   "author": "Excalidesk",
   "main": "dist/main.cjs",
