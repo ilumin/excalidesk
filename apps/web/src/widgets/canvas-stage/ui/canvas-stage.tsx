@@ -1,8 +1,5 @@
-import { Excalidraw, serializeAsJSON } from "@excalidraw/excalidraw";
-import type {
-  ExcalidrawImperativeAPI,
-  ExcalidrawInitialDataState,
-} from "@excalidraw/excalidraw/types";
+import { Excalidraw } from "@excalidraw/excalidraw";
+import type { ExcalidrawInitialDataState } from "@excalidraw/excalidraw/types";
 import { TriangleAlert } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -42,7 +39,6 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   const compact = useEditorStore((state) => state.compact);
 
   const [scene, setScene] = useState<ExcalidrawInitialDataState | null>(null);
-  const api = useRef<ExcalidrawImperativeAPI | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   /** Serialized scene as last written; null until the first idle after load. */
   const saved = useRef<string | null>(null);
@@ -79,16 +75,8 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
 
-  const serialize = () => {
-    const editor = api.current;
-    if (!editor) return null;
-    return serializeAsJSON(
-      editor.getSceneElements(),
-      editor.getAppState(),
-      editor.getFiles(),
-      "local",
-    );
-  };
+  // The editor handle lives in the store, so Save As can reach the same scene.
+  const serialize = () => useEditorStore.getState().serialize();
 
   // ponytail: debounced write-through rather than an explicit save command —
   // local files, single writer, no conflict story yet.
@@ -154,11 +142,9 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
           <Excalidraw
             // Remount on tab switch so each sketch gets its own scene + history.
             key={activeTabId}
-            excalidrawAPI={(editor) => {
-              api.current = editor;
-              // Published so the settings menu can drive the library sidebar.
-              setEditorApi(editor);
-            }}
+            // Published so the settings menu can drive the library sidebar,
+            // and so saving can read the scene back out.
+            excalidrawAPI={setEditorApi}
             initialData={{
               ...scene,
               appState: { ...scene.appState, viewBackgroundColor: "transparent" },

@@ -131,3 +131,44 @@ test("retarget carries the missing flag across a rename", () => {
 
   expect(useTabStore.getState().tabs[0]?.missing).toBe(true);
 });
+
+test("closeMany hands the active slot to whatever takes its place", () => {
+  const { open } = useTabStore.getState();
+  open(A, "permanent");
+  open(B, "permanent");
+  open(C, "permanent");
+  useTabStore.getState().activate(A);
+  useTabStore.getState().closeMany([A, B]);
+
+  expect(paths()).toEqual([C]);
+  expect(useTabStore.getState().activeTabId).toBe(C);
+});
+
+test("closeMany leaves a surviving active tab alone", () => {
+  const { open } = useTabStore.getState();
+  open(A, "permanent");
+  open(B, "permanent");
+  open(C, "permanent");
+  useTabStore.getState().activate(B);
+  useTabStore.getState().closeMany([A, C]);
+
+  expect(paths()).toEqual([B]);
+  expect(useTabStore.getState().activeTabId).toBe(B);
+});
+
+test("closing every tab clears the active one", () => {
+  const { open } = useTabStore.getState();
+  open(A, "permanent");
+  open(B, "permanent");
+  useTabStore.getState().closeMany([A, B]);
+
+  expect(paths()).toEqual([]);
+  expect(useTabStore.getState().activeTabId).toBeNull();
+});
+
+test("closeMany ignores ids that are not open", () => {
+  useTabStore.getState().open(A, "permanent");
+  useTabStore.getState().closeMany(["/v/never-opened.excalidraw"]);
+
+  expect(paths()).toEqual([A]);
+});

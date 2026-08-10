@@ -1,3 +1,4 @@
+import { serializeAsJSON } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { create } from "zustand";
 
@@ -14,6 +15,8 @@ interface EditorState {
   /** Shrinks Excalidraw's buttons and icons. On by default. */
   compact: boolean;
   setApi: (api: ExcalidrawImperativeAPI | null) => void;
+  /** The live scene as it would be written to disk; null with no editor up. */
+  serialize: () => string | null;
   toggleLibrary: () => void;
   toggleSearch: () => void;
   exportPng: (name: string) => void;
@@ -25,6 +28,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   api: null,
   compact: loadSetting(COMPACT, true),
   setApi: (api) => set({ api }),
+
+  serialize: () => {
+    const api = get().api;
+    if (!api) return null;
+    // `serializeAsJSON` strips transient state, so the same scene serializes
+    // identically twice — which is what lets the autosave skip a no-op write.
+    return serializeAsJSON(api.getSceneElements(), api.getAppState(), api.getFiles(), "local");
+  },
 
   // `library` and `search` are tabs inside Excalidraw's `default` sidebar —
   // they are not sidebar names of their own.

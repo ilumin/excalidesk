@@ -4,7 +4,7 @@ import { useVaultStore } from "@/entities/vault";
 import { VaultErrorPage } from "@/pages/vault-error";
 import { WelcomePage } from "@/pages/welcome";
 import { WorkspacePage } from "@/pages/workspace";
-import { ConfirmDialog } from "@/shared/ui";
+import { ConfirmDialog, SaveAsDialog } from "@/shared/ui";
 
 /**
  * Boot: read the persisted folder, validate it, and pick the screen.
@@ -46,6 +46,7 @@ export function App() {
     <>
       {screen}
       <ConfirmDialog />
+      <SaveAsDialog />
     </>
   );
 }

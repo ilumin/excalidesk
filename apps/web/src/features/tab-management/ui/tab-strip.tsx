@@ -1,29 +1,10 @@
 import { Plus } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 
 import { TabItem, useTabStore } from "@/entities/tab";
 import { useVaultStore } from "@/entities/vault";
-import { IconButton, confirmAction } from "@/shared/ui";
-
-function useCloseTab() {
-  const close = useTabStore((state) => state.close);
-  return useCallback(
-    async (id: string) => {
-      const tab = useTabStore.getState().tabs.find((candidate) => candidate.id === id);
-      if (tab?.isDirty) {
-        // Confirming closes and loses the edits, so the copy says exactly that
-        // rather than asking about saving and then not saving.
-        const discard = await confirmAction(`Close ${tab.title} without saving?`, {
-          detail: "The edits since the last save will be lost.",
-          confirmLabel: "Discard changes",
-        });
-        if (!discard) return;
-      }
-      close(id);
-    },
-    [close],
-  );
-}
+import { TabContextMenu, useTabActions } from "@/features/tab-context-menu";
+import { IconButton } from "@/shared/ui";
 
 export function TabStrip() {
   const tabs = useTabStore((state) => state.tabs);
@@ -32,31 +13,34 @@ export function TabStrip() {
   const keep = useTabStore((state) => state.keep);
   const createUntitled = useTabStore((state) => state.createUntitled);
   const vaultPath = useVaultStore((state) => state.path);
-  const closeTab = useCloseTab();
+  // The ✕, ⌘W and the context menu all close through the same function, so a
+  // single tab behaves identically however it is closed.
+  const { closeTabs } = useTabActions();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === "w" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         const { activeTabId: current } = useTabStore.getState();
-        if (current) void closeTab(current);
+        if (current) void closeTabs([current]);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeTab]);
+  }, [closeTabs]);
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-[3px] overflow-hidden">
       {tabs.map((tab) => (
-        <TabItem
-          key={tab.id}
-          tab={tab}
-          active={tab.id === activeTabId}
-          onActivate={() => activate(tab.id)}
-          onKeep={() => keep(tab.id)}
-          onClose={() => void closeTab(tab.id)}
-        />
+        <TabContextMenu key={tab.id} tab={tab}>
+          <TabItem
+            tab={tab}
+            active={tab.id === activeTabId}
+            onActivate={() => activate(tab.id)}
+            onKeep={() => keep(tab.id)}
+            onClose={() => void closeTabs([tab.id])}
+          />
+        </TabContextMenu>
       ))}
       <IconButton
         className="ml-0.5"

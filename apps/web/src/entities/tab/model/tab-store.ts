@@ -26,6 +26,8 @@ interface TabState {
   open: (filePath: string, mode?: OpenMode) => void;
   activate: (id: string) => void;
   close: (id: string) => void;
+  /** Closes a whole batch at once, as "Close Others" and "Close All" do. */
+  closeMany: (ids: string[]) => void;
   /** Promotes a preview tab to a kept one, as editing or double-click does. */
   keep: (id: string) => void;
   createUntitled: (parentPath: string) => void;
@@ -100,15 +102,23 @@ export const useTabStore = create<TabState>((set, get) => ({
   },
 
   close(id) {
+    get().closeMany([id]);
+  },
+
+  closeMany(ids) {
     const { tabs, activeTabId } = get();
-    const index = tabs.findIndex((tab) => tab.id === id);
-    if (index < 0) return;
-    const nextTabs = tabs.filter((tab) => tab.id !== id);
+    const doomed = new Set(ids);
+    const nextTabs = tabs.filter((tab) => !doomed.has(tab.id));
+    if (nextTabs.length === tabs.length) return;
+
+    // Losing the active tab hands focus to whatever now sits in its place, or
+    // to the last tab when it was the trailing one.
+    const index = tabs.findIndex((tab) => tab.id === activeTabId);
     persist(nextTabs);
     set({
       tabs: nextTabs,
       activeTabId:
-        activeTabId === id
+        activeTabId && doomed.has(activeTabId)
           ? (nextTabs[Math.min(index, nextTabs.length - 1)]?.id ?? null)
           : activeTabId,
     });
@@ -180,19 +190,11 @@ export const useTabStore = create<TabState>((set, get) => ({
   },
 
   dropUnder(path) {
-    const { tabs, activeTabId } = get();
-    const nextTabs = tabs.filter((tab) => !isAtOrUnder(tab.filePath, path));
-    if (nextTabs.length === tabs.length) return;
-
-    const index = tabs.findIndex((tab) => tab.id === activeTabId);
-    persist(nextTabs);
-    set({
-      tabs: nextTabs,
-      activeTabId:
-        activeTabId && isAtOrUnder(activeTabId, path)
-          ? (nextTabs[Math.min(index, nextTabs.length - 1)]?.id ?? null)
-          : activeTabId,
-    });
+    get().closeMany(
+      get()
+        .tabs.filter((tab) => isAtOrUnder(tab.filePath, path))
+        .map((tab) => tab.id),
+    );
   },
 
   reset(tabs, activeTabId) {
