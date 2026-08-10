@@ -81,6 +81,25 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
   // The editor handle lives in the store, so Save As can reach the same scene.
   const serialize = () => useEditorStore.getState().serialize();
 
+  // Cmd+S: app-level save (flush immediately instead of debounce)
+  useEffect(() => {
+    const handleSave = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+        // Exclude modals and non-Excalidraw focus
+        if (document.querySelector(".excalidraw-modal-container, .dropdown-menu")) return;
+        const container = excalidrawRef.current;
+        if (!container || !container.contains(event.target as Node)) return;
+
+        event.preventDefault();
+        clearTimeout(saveTimer.current);
+        scheduleSave();
+      }
+    };
+
+    document.addEventListener("keydown", handleSave);
+    return () => document.removeEventListener("keydown", handleSave);
+  }, [scheduleSave]);
+
   // Forward Cmd+A/C/V to Excalidraw's text editor when focused
   useEffect(() => {
     const container = excalidrawRef.current;
