@@ -19,6 +19,18 @@ export function App() {
     void boot();
   }, [boot]);
 
+  // WebKit's own menu offers Reload and Inspect Element, which read as a web
+  // page rather than an app. The app's menus are unaffected: Base UI and
+  // Excalidraw call `preventDefault` in their own listeners, and every listener
+  // still runs.
+  // ponytail: blanket, so text fields lose the native copy/paste menu too —
+  // ⌘C/⌘V still work. Exempt inputs here if that ever bites.
+  useEffect(() => {
+    const block = (event: MouseEvent) => event.preventDefault();
+    document.addEventListener("contextmenu", block);
+    return () => document.removeEventListener("contextmenu", block);
+  }, []);
+
   // One mount for the whole app: `confirmAction` drives it from anywhere.
   const screen = !booted ? (
     <div className="h-full bg-ed-chrome" />
