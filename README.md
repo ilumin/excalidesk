@@ -1,31 +1,64 @@
 # excalidesk
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, and more.
+A desktop Excalidraw: open a folder of `.excalidraw` files, browse them in a
+sidebar, edit them in tabs, save back to disk.
 
-## Features
+**Secondary goal:** compare [Electrobun](https://electrobun.dev) against
+[Electron](https://electronjs.org) on the same app. The same renderer
+(`apps/web`) runs on both shells — `apps/desktop` (Electrobun) and
+`apps/electron` — behind one 15-method bridge contract, so they can be run side
+by side and diffed. Neither has been dropped yet.
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Router** - File-based routing with full type safety
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Electrobun** - Lightweight desktop shell for web frontends
-- **Turborepo** - Optimized monorepo build system
+| | Electrobun | Electron |
+| --- | --- | --- |
+| DMG | 126 MB | 112 MB |
+| Installed `.app` | 393 MB | 272 MB |
+| Bridge methods | 15 | 15 |
+| Shell workarounds needed | 6 | 1 |
 
-## Getting Started
+Details in [docs/desktop-package-size.md](docs/desktop-package-size.md) and
+[docs/electron-port-plan.md](docs/electron-port-plan.md).
 
-First, install the dependencies:
+Built on [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack):
+TypeScript, React 19, TanStack Router, TailwindCSS, Turborepo, shared shadcn/ui
+in `packages/ui`.
+
+## Install
+
+Requires [Bun](https://bun.sh) 1.3+ (the repo pins `bun@1.3.14`).
 
 ```bash
 bun install
 ```
 
-Then, run the development server:
+## Run locally
+
+Pick one shell — each starts the Vite dev server on
+[http://localhost:3001](http://localhost:3001) and points the shell at it, with
+HMR:
 
 ```bash
-bun run dev
+bun run dev:electron   # Electron shell
+bun run dev:desktop    # Electrobun shell
+bun run dev:web        # browser only — no filesystem, stubbed bridge
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
+In the browser the filesystem bridge is a stub (`shared/api/fs`), so opening a
+vault does nothing. Use one of the desktop shells to work with real files.
+
+## Build
+
+```bash
+bun run build:electron        # → apps/electron/release/Excalidesk-0.0.1-arm64.dmg
+bun run build:desktop         # → apps/desktop/artifacts/stable-macos-arm64-excalidesk.dmg
+bun run build:desktop:canary  # same, canary channel
+bun run build                 # web + Electrobun shell
+```
+
+Both shells build `apps/web` first, then package it. macOS builds are unsigned
+(`identity: null` / `codesign: false`), so Gatekeeper will hold the first launch
+of a fresh bundle for ~25 s; signing and notarizing is what removes it, and is
+required before the DMG opens on anyone else's machine.
 
 ## UI Customization
 
@@ -58,10 +91,16 @@ If you want to add app-specific blocks instead of shared primitives, run the sha
 ```
 excalidesk/
 ├── apps/
-│   ├── web/         # Frontend application (React + TanStack Router)
+│   ├── web/         # Renderer (React + TanStack Router) — shell-agnostic
+│   ├── desktop/     # Electrobun shell
+│   ├── electron/    # Electron shell (main + preload)
 ├── packages/
 │   ├── ui/          # Shared shadcn/ui components and styles
 ```
+
+Both shells implement the same `DesktopApi` declared in
+`apps/web/src/shared/api/fs/types.ts` and type-check against it through a
+`@web/*` alias, so a signature change breaks both sides at once.
 
 ### Renderer layout (Feature-Sliced Design)
 
@@ -127,10 +166,8 @@ bun run --cwd apps/web storybook
 
 ## Available Scripts
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run dev:desktop`: Start the Electrobun desktop app with HMR
-- `bun run build:desktop`: Build the stable Electrobun desktop app
-- `bun run build:desktop:canary`: Build the canary Electrobun desktop app
+- `bun run dev:web`: Vite dev server only, in the browser
+- `bun run dev:electron`: Electron shell + Vite dev server, with HMR
+- `bun run dev:desktop`: Electrobun shell + Vite dev server, with HMR
+- `bun run build:electron` / `build:desktop` / `build:desktop:canary`: package a DMG
+- `bun run check-types`: type-check every app, both shells included
