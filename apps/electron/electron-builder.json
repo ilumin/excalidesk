@@ -9,17 +9,11 @@
   "asar": true,
   "npmRebuild": false,
   "mac": {
-    "target": ["dmg"],
+    "target": "dmg",
     "category": "public.app-category.productivity",
     "identity": null
   },
   "win": {
-    "target": ["nsis", "portable"],
-    "certificateFile": null,
-    "certificatePassword": null
-  },
-  "nsis": {
-    "oneClick": false,
-    "allowToChangeInstallationDirectory": true
+    "target": ["nsis", "portable"]
   }
 }
