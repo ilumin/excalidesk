@@ -6,14 +6,14 @@ sidebar, edit them in tabs, save back to disk.
 **Secondary goal:** compare [Electrobun](https://electrobun.dev) against
 [Electron](https://electronjs.org) on the same app. The same renderer
 (`apps/web`) runs on both shells — `apps/desktop` (Electrobun) and
-`apps/electron` — behind one 15-method bridge contract, so they can be run side
+`apps/electron` — behind one 17-method bridge contract, so they can be run side
 by side and diffed. Neither has been dropped yet.
 
 | | Electrobun | Electron |
 | --- | --- | --- |
 | DMG | 126 MB | 112 MB |
 | Installed `.app` | 393 MB | 272 MB |
-| Bridge methods | 15 | 15 |
+| Bridge methods | 17 | 17 |
 | Shell workarounds needed | 6 | 1 |
 
 Details in [docs/desktop-package-size.md](docs/desktop-package-size.md) and
@@ -113,7 +113,7 @@ pages/      # welcome, vault-error, workspace
 widgets/    # title-bar, file-tree-sidebar, canvas-stage
 features/   # open-folder, toggle-sidebar, switch-theme, tab-management,
             # file-tree-context-menu
-entities/   # vault, sketch-file, tab
+entities/   # vault, sketch-file, tab, library
 shared/     # ui kit, lib, api/fs
 ```
 
@@ -139,10 +139,19 @@ container, so it steps aside while the text editor, a modal, or a dropdown is op
 Excalidraw's ☰ menu, ? button, and Library trigger are hidden (`display: none`
 by class name — Excalidraw exposes no prop for it, and a rename there fails
 visibly rather than silently). The actions worth keeping moved into the app's
-settings menu as a Canvas group: Find on canvas, Library, Export as PNG, Clear
-canvas, and a **Compact interface** toggle (on by default) that swaps
-Excalidraw's own button and icon size variables. All in
+settings menu as a Canvas group: Find on canvas, Library, Import library, Export
+as PNG, Clear canvas, and a **Compact interface** toggle (on by default) that
+swaps Excalidraw's own button and icon size variables. All in
 `features/editor-controls`.
+
+The library itself is one global `.excalidrawlib` file in the app data folder
+(`readLibrary` / `writeLibrary` on the bridge), read once at boot by
+`entities/library` and written back on every change. Excalidraw's npm package
+persists nothing of its own, and the editor is remounted per tab, so without
+this the library emptied on every tab switch. Import exists because
+Excalidraw's own "Browse libraries" hands the library back through
+`libraryReturnUrl`, a round trip an `app://` or `views://` renderer cannot
+receive — download the file, then import it.
 
 `widgets/canvas-stage` mounts the real Excalidraw editor. It uses Excalidraw's
 own toolbar, style panel, and zoom control — they already sit where the design

@@ -1,6 +1,6 @@
 import { browserFs } from "./browser-fs";
 import { createDesktopApi } from "./desktop-fs";
-import type { DesktopApi, FsBridge, SettingsBridge, WindowBridge } from "./types";
+import type { DesktopApi, FsBridge, LibraryBridge, SettingsBridge, WindowBridge } from "./types";
 
 declare global {
   interface Window {
@@ -29,12 +29,16 @@ export const desktopSettings: SettingsBridge | null = desktop;
 /** Null in the browser, which has no window chrome of its own to drive. */
 export const desktopWindow: WindowBridge | null = desktop;
 
+/** Null in the browser, where `entities/library` falls back to `localStorage`. */
+export const desktopLibrary: LibraryBridge | null = desktop;
+
 export type {
   DesktopApi,
   DesktopRequests,
   FsBridge,
   FsNode,
   FsNodeKind,
+  LibraryBridge,
   SettingsBridge,
   WindowBridge,
 } from "./types";

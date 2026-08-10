@@ -32,6 +32,8 @@ const api: DesktopApi = {
   readSettings: call("readSettings"),
   writeSettings: call("writeSettings"),
   toggleMaximize: call("toggleMaximize"),
+  readLibrary: call("readLibrary"),
+  writeLibrary: call("writeLibrary"),
 };
 
 contextBridge.exposeInMainWorld("excalidesk", { fs: api });

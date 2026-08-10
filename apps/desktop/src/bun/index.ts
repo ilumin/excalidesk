@@ -9,6 +9,7 @@ import {
 import type { DesktopRequests } from "@web/shared/api/fs/types";
 
 import { fsService } from "./fs-service";
+import { libraryService } from "./library-service";
 import { settingsService } from "./settings-service";
 import { attachWindow, windowService } from "./window-service";
 
@@ -38,7 +39,12 @@ const url = await getMainViewUrl();
 // `DesktopRequests` keeps the wire contract honest; the cast only erases the
 // loop's generics.
 const requests = Object.fromEntries(
-  Object.entries({ ...fsService, ...settingsService, ...windowService }).map(([name, method]) => [
+  Object.entries({
+    ...fsService,
+    ...settingsService,
+    ...windowService,
+    ...libraryService,
+  }).map(([name, method]) => [
     name,
     (args: unknown[]) => (method as (...a: unknown[]) => unknown)(...args),
   ]),

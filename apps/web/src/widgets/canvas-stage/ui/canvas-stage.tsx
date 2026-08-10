@@ -4,6 +4,7 @@ import { TriangleAlert } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { getLibraryItems, saveLibraryItems } from "@/entities/library";
 import { emptyScene, readSketch, writeSketch } from "@/entities/sketch-file";
 import { useTabStore } from "@/entities/tab";
 import { useEditorStore } from "@/features/editor-controls";
@@ -149,7 +150,11 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
               ...scene,
               appState: { ...scene.appState, viewBackgroundColor: "transparent" },
               scrollToContent: true,
+              // The library is global and outlives this mount, so it is re-seeded
+              // from the cache rather than read back off disk per tab.
+              libraryItems: getLibraryItems(),
             }}
+            onLibraryChange={saveLibraryItems}
             theme={resolvedTheme === "dark" ? "dark" : "light"}
             UIOptions={{ canvasActions: { changeViewBackgroundColor: false, loadScene: false } }}
             onChange={() => {

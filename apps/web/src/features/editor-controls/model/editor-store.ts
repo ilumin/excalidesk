@@ -1,7 +1,8 @@
-import { serializeAsJSON } from "@excalidraw/excalidraw";
+import { loadLibraryFromBlob, serializeAsJSON } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { create } from "zustand";
 
+import { fs } from "@/shared/api/fs";
 import { loadSetting, saveSetting } from "@/shared/lib";
 import { confirmAction } from "@/shared/ui";
 
@@ -18,6 +19,8 @@ interface EditorState {
   /** The live scene as it would be written to disk; null with no editor up. */
   serialize: () => string | null;
   toggleLibrary: () => void;
+  /** Merges a `.excalidrawlib` file from disk into the library. */
+  importLibrary: () => Promise<void>;
   toggleSearch: () => void;
   exportPng: (name: string) => void;
   resetScene: () => Promise<void>;
@@ -41,6 +44,31 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   // they are not sidebar names of their own.
   toggleLibrary: () => get().api?.toggleSidebar({ name: "default", tab: "library" }),
   toggleSearch: () => get().api?.toggleSidebar({ name: "default", tab: "search" }),
+
+  /**
+   * Excalidraw's own "Browse libraries" link hands the library back by
+   * navigating to `libraryReturnUrl` with the data in the hash — a round trip a
+   * `views://` or `app://` renderer cannot receive. Until a custom URL scheme
+   * exists on both shells, the user downloads the file and imports it here.
+   *
+   * `updateLibrary` fires `onLibraryChange`, so the merged set persists itself.
+   */
+  importLibrary: async () => {
+    const api = get().api;
+    if (!api) return;
+    const path = await fs.pickFile([".excalidrawlib", ".excalidraw"]);
+    if (!path) return;
+    const raw = await fs.readFile(path);
+    if (raw === null) return;
+    try {
+      const libraryItems = await loadLibraryFromBlob(new Blob([raw], { type: "application/json" }));
+      await api.updateLibrary({ libraryItems, merge: true, openLibraryMenu: true });
+    } catch {
+      await confirmAction("That file is not an Excalidraw library.", {
+        detail: "Expected a .excalidrawlib file, or a .excalidraw scene with library items.",
+      });
+    }
+  },
 
   exportPng: (name) => {
     const api = get().api;

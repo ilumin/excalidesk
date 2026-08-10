@@ -49,7 +49,19 @@ export interface WindowBridge {
   toggleMaximize(): Promise<void>;
 }
 
-export type DesktopApi = FsBridge & SettingsBridge & WindowBridge;
+/**
+ * One global library, beside `settings.json` in the app data folder — a library
+ * is a personal toolbox, not a property of one vault. It gets its own file
+ * rather than a settings key: items carry element data and base64 images, and
+ * the settings blob is rewritten whole on every change.
+ */
+export interface LibraryBridge {
+  /** Raw `.excalidrawlib` JSON; null before anything has been saved. */
+  readLibrary(): Promise<string | null>;
+  writeLibrary(contents: string): Promise<void>;
+}
+
+export type DesktopApi = FsBridge & SettingsBridge & WindowBridge & LibraryBridge;
 
 /**
  * The same contract as an RPC request map — one request per method, params are

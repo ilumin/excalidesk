@@ -6,6 +6,7 @@ import { app, BrowserWindow, ipcMain, Menu, net, protocol } from "electron";
 import type { DesktopApi } from "@web/shared/api/fs/types";
 
 import { fsService } from "./fs-service";
+import { libraryService } from "./library-service";
 import { settingsService } from "./settings-service";
 import { windowService } from "./window-service";
 
@@ -57,7 +58,12 @@ async function waitForDevServer(): Promise<boolean> {
 
 /** One handler per bridge method, applied from the argument tuple. */
 function registerBridge() {
-  const services: DesktopApi = { ...fsService, ...settingsService, ...windowService };
+  const services: DesktopApi = {
+    ...fsService,
+    ...settingsService,
+    ...windowService,
+    ...libraryService,
+  };
   for (const name of Object.keys(services) as (keyof DesktopApi)[]) {
     const method = services[name] as (...args: unknown[]) => unknown;
     ipcMain.handle(name, (_event, args: unknown[]) => method(...args));

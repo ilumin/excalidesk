@@ -1,4 +1,4 @@
-import { ImageDown, LibraryBig, Minimize, Search, Trash2 } from "lucide-react";
+import { FolderInput, ImageDown, LibraryBig, Minimize, Search, Trash2 } from "lucide-react";
 
 import { useTabStore } from "@/entities/tab";
 import { MenuGroup, MenuItem, MenuLabel, MenuSeparator } from "@/shared/ui";
@@ -28,6 +28,9 @@ export function EditorMenuItems() {
       </MenuItem>
       <MenuItem icon={LibraryBig} onClick={store.toggleLibrary}>
         Library
+      </MenuItem>
+      <MenuItem icon={FolderInput} onClick={() => void store.importLibrary()}>
+        Import library…
       </MenuItem>
       <MenuItem icon={ImageDown} onClick={() => store.exportPng(title)}>
         Export as PNG
