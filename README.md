@@ -48,17 +48,60 @@ vault does nothing. Use one of the desktop shells to work with real files.
 
 ## Build
 
+### Electron builds (cross-platform)
+
 ```bash
-bun run build:electron        # → apps/electron/release/Excalidesk-0.0.1-arm64.dmg
+bun run build:electron
+```
+
+Creates installers in `apps/electron/release/`:
+- `Excalidesk-0.0.2-arm64.dmg` (macOS)
+- `Excalidesk-0.0.2-x64.exe` (Windows installer)
+- `Excalidesk-0.0.2.exe` (Windows portable)
+
+Other builds:
+
+```bash
 bun run build:desktop         # → apps/desktop/artifacts/stable-macos-arm64-excalidesk.dmg
 bun run build:desktop:canary  # same, canary channel
 bun run build                 # web + Electrobun shell
 ```
 
-Both shells build `apps/web` first, then package it. macOS builds are unsigned
-(`identity: null` / `codesign: false`), so Gatekeeper will hold the first launch
-of a fresh bundle for ~25 s; signing and notarizing is what removes it, and is
-required before the DMG opens on anyone else's machine.
+Both shells build `apps/web` first, then package it. Unsigned builds:
+- macOS: Gatekeeper holds the first launch for ~25 s. Signing and notarizing required for distribution.
+- Windows: SmartScreen may warn on first run. Code signing (EV certificate) removes warnings.
+
+## Release
+
+### Automated release via GitHub Actions
+
+Push a version tag to trigger a build and GitHub release:
+
+```bash
+# Update version in apps/electron/package.json
+# Then:
+git add apps/electron/package.json
+git commit -m "chore: version 0.0.2"
+git tag v0.0.2
+git push origin main
+git push origin v0.0.2
+```
+
+GitHub Actions will:
+- Build Electron app (macOS DMG + Windows EXE)
+- Create release page on GitHub
+- Attach installers for download
+
+Check progress: [Actions tab](https://github.com/ilumin/excalidesk/actions)
+
+### Manual build and release (local)
+
+```bash
+bun run build:electron
+cd apps/electron/release
+# Upload files to GitHub release manually or via:
+# gh release create v0.0.2 Excalidesk-*.dmg Excalidesk-*.exe
+```
 
 ## UI Customization
 

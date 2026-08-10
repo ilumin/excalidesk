@@ -6,7 +6,7 @@ on:
       - 'v*.*.*'
 
 jobs:
-  build:
+  build-macos:
     runs-on: macos-latest
     permissions:
       contents: write
@@ -21,12 +21,57 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build electron app
+      - name: Build electron app (macOS)
         run: bun run build:electron
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: apps/electron/release/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build electron app (Windows)
+        run: bun run build:electron
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: apps/electron/release/*.exe
+
+  release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: apps/electron/release/Excalidesk.dmg
+          files: |
+            release-artifacts/macos-artifacts/*
+            release-artifacts/windows-artifacts/*
           draft: false
           prerelease: false
