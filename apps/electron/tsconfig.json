@@ -1,0 +1,18 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    // `bun` for `bun:test`; the base config narrows this to node alone.
+    "types": ["node", "bun"],
+    "paths": {
+      "@/*": ["./src/*"],
+      // Type-only: the DesktopApi contract lives with the renderer that consumes it.
+      "@web/*": ["../web/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "electron-builder.json"]
+}

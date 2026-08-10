@@ -24,10 +24,12 @@
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build --filter='!desktop' && turbo run build -F desktop",
+    "build": "turbo run build --filter='!desktop' --filter='!electron' && turbo run build -F desktop",
     "check-types": "turbo run check-types",
     "dev:web": "turbo run dev -F web",
     "dev:desktop": "turbo run dev:hmr -F desktop",
+    "dev:electron": "turbo run dev:hmr -F electron",
+    "build:electron": "turbo run build -F electron",
     "build:desktop": "turbo run build:stable -F desktop",
     "build:desktop:canary": "turbo run build:canary -F desktop"
   },

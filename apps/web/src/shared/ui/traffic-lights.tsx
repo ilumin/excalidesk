@@ -1,3 +1,5 @@
+import { isDesktop } from "@/shared/api/fs";
+
 const LIGHTS = ["#f0605c", "#f4bd4f", "#61c554"];
 
 /**
@@ -9,7 +11,7 @@ const LIGHTS = ["#f0605c", "#f4bd4f", "#61c554"];
  * explicit close/minimize/maximize RPC when either is targeted.
  */
 export function TrafficLights() {
-  if (globalThis.window?.__electrobun) {
+  if (isDesktop) {
     return <div className="w-[52px] flex-none" aria-hidden />;
   }
 

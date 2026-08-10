@@ -1,2 +1,15 @@
 @import "@excalidesk/ui/globals.css";
 @import "./app/styles/tokens.css";
+
+/*
+ * Drag regions for the app-drawn title bar. Electrobun's preload reads these
+ * class names on `mousedown`; Electron reads the CSS property. The property is
+ * inert in a normal browser tab, so one pair of rules serves all three.
+ */
+.electrobun-webkit-app-region-drag {
+  -webkit-app-region: drag;
+}
+
+.electrobun-webkit-app-region-no-drag {
+  -webkit-app-region: no-drag;
+}

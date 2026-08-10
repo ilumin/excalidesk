@@ -15,8 +15,10 @@ interface TitleBarProps {
   variant?: "chrome" | "workspace";
 }
 
-// Electrobun's preload moves the window on mousedown inside `.drag`, unless the
-// target sits under `.no-drag`. Inert class names in the browser build.
+// Drag regions. Electrobun's preload moves the window on mousedown inside
+// `.drag` unless the target sits under `.no-drag`; Electron reads the
+// `-webkit-app-region` rules index.css attaches to the same names. Inert in the
+// browser build.
 const DRAG = "electrobun-webkit-app-region-drag";
 const NO_DRAG = "electrobun-webkit-app-region-no-drag";
 
@@ -27,6 +29,8 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
   // Electrobun's preload handles dragging but not the double-click that zooms,
   // so the same `.no-drag` test decides both: anything with its own
   // double-click — a tab promoting itself out of preview — is already under it.
+  // Electron zooms natively on the drag region, so its `toggleMaximize` is a
+  // no-op and this handler falls through harmlessly.
   const zoomOnDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest(`.${NO_DRAG}`)) return;
     void desktopWindow?.toggleMaximize();

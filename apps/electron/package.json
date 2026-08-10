@@ -1,0 +1,25 @@
+{
+  "name": "electron",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Excalidesk desktop shell",
+  "author": "Excalidesk",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "compile": "bun build src/main/index.ts --outfile dist/main.cjs --target=node --format=cjs --external electron && bun build src/preload/index.ts --outfile dist/preload.cjs --target=node --format=cjs --external electron",
+    "start": "bun run compile && electron .",
+    "dev": "ELECTRON_DEV=1 bun run start",
+    "dev:hmr": "concurrently \"turbo run dev -F web\" \"bun run dev\"",
+    "build": "turbo run build -F web && bun run compile && electron-builder",
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "@types/node": "catalog:",
+    "concurrently": "^10.0.4",
+    "electron": "^40.2.1",
+    "electron-builder": "^26.0.24",
+    "typescript": "catalog:"
+  }
+}
