@@ -76,8 +76,58 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
 
+  const excalidrawRef = useRef<HTMLDivElement>(null);
+
   // The editor handle lives in the store, so Save As can reach the same scene.
   const serialize = () => useEditorStore.getState().serialize();
+
+  // Forward Cmd+A/C/V to Excalidraw's text editor when focused
+  useEffect(() => {
+    const container = excalidrawRef.current;
+    if (!container) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.metaKey && !event.ctrlKey) return;
+      if (!["a", "c", "v"].includes(event.key.toLowerCase())) return;
+
+      const target = event.target as HTMLElement;
+      const textEditor = container.querySelector("textarea") as HTMLTextAreaElement | null;
+      if (!textEditor) return;
+
+      const inExcalidraw =
+        container.contains(target) &&
+        !document.querySelector(".excalidraw-modal-container, .dropdown-menu");
+      if (!inExcalidraw) return;
+
+      if (event.key.toLowerCase() === "a") {
+        textEditor.select();
+        event.preventDefault();
+      } else if (event.key.toLowerCase() === "c") {
+        if (textEditor.selectionStart !== textEditor.selectionEnd) {
+          const selectedText = textEditor.value.substring(
+            textEditor.selectionStart,
+            textEditor.selectionEnd,
+          );
+          navigator.clipboard.writeText(selectedText);
+          event.preventDefault();
+        }
+      } else if (event.key.toLowerCase() === "v") {
+        navigator.clipboard.readText().then((text) => {
+          const start = textEditor.selectionStart;
+          const end = textEditor.selectionEnd;
+          const before = textEditor.value.substring(0, start);
+          const after = textEditor.value.substring(end);
+          textEditor.value = before + text + after;
+          textEditor.selectionStart = textEditor.selectionEnd = start + text.length;
+          textEditor.dispatchEvent(new Event("input", { bubbles: true }));
+          event.preventDefault();
+        });
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // ponytail: debounced write-through rather than an explicit save command —
   // local files, single writer, no conflict story yet.
@@ -132,6 +182,7 @@ export function CanvasStage({ flush }: { flush?: boolean }) {
         </div>
       ) : null}
       <div
+        ref={excalidrawRef}
         className="ed-canvas relative flex-1 overflow-hidden"
         data-compact={compact ? "" : undefined}
         style={{
