@@ -23,6 +23,8 @@ Built on [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stac
 TypeScript, React 19, TanStack Router, TailwindCSS, Turborepo, shared shadcn/ui
 in `packages/ui`.
 
+![Excalidesk app](docs/app-screenshot.png)
+
 ## Install
 
 Requires [Bun](https://bun.sh) 1.3+ (the repo pins `bun@1.3.14`).
