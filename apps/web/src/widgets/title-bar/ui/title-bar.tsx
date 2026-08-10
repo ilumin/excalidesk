@@ -1,9 +1,11 @@
 import { cn } from "@excalidesk/ui/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { MouseEvent } from "react";
 
 import { FocusModeButton } from "@/features/focus-mode";
 import { TabStrip } from "@/features/tab-management";
 import { SidebarToggle, useSidebarStore } from "@/features/toggle-sidebar";
+import { desktopWindow } from "@/shared/api/fs";
 import { IconButton, TrafficLights } from "@/shared/ui";
 
 import { SettingsMenu } from "./settings-menu";
@@ -22,8 +24,19 @@ export function TitleBar({ variant = "workspace" }: TitleBarProps) {
   const collapsed = useSidebarStore((state) => state.collapsed);
   const workspace = variant === "workspace";
 
+  // Electrobun's preload handles dragging but not the double-click that zooms,
+  // so the same `.no-drag` test decides both: anything with its own
+  // double-click — a tab promoting itself out of preview — is already under it.
+  const zoomOnDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest(`.${NO_DRAG}`)) return;
+    void desktopWindow?.toggleMaximize();
+  };
+
   return (
-    <div className={cn("flex h-[46px] flex-none items-center bg-ed-chrome", DRAG)}>
+    <div
+      onDoubleClick={zoomOnDoubleClick}
+      className={cn("flex h-[46px] flex-none items-center bg-ed-chrome", DRAG)}
+    >
       <div
         className={cn(
           "flex items-center gap-2 pr-3 pl-4",

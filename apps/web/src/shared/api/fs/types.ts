@@ -40,7 +40,16 @@ export interface SettingsBridge {
   writeSettings(settings: Record<string, unknown>): Promise<void>;
 }
 
-export type DesktopApi = FsBridge & SettingsBridge;
+/**
+ * Native window chrome the UI drives itself. Electrobun's preload only handles
+ * dragging, so double-click-to-zoom on the title bar comes through here.
+ */
+export interface WindowBridge {
+  /** macOS zoom: fills the screen, or restores the previous frame. */
+  toggleMaximize(): Promise<void>;
+}
+
+export type DesktopApi = FsBridge & SettingsBridge & WindowBridge;
 
 /**
  * The same contract as an RPC request map — one request per method, params are

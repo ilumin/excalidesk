@@ -1,6 +1,6 @@
 import { browserFs } from "./browser-fs";
 import { createDesktopApi } from "./desktop-fs";
-import type { FsBridge, SettingsBridge } from "./types";
+import type { FsBridge, SettingsBridge, WindowBridge } from "./types";
 
 declare global {
   interface Window {
@@ -19,6 +19,9 @@ export const fs: FsBridge = globalThis.window?.excalidesk?.fs ?? desktop ?? brow
 /** Null in the browser, where `localStorage` already outlives the session. */
 export const desktopSettings: SettingsBridge | null = desktop;
 
+/** Null in the browser, which has no window chrome of its own to drive. */
+export const desktopWindow: WindowBridge | null = desktop;
+
 export type {
   DesktopApi,
   DesktopRequests,
@@ -26,4 +29,5 @@ export type {
   FsNode,
   FsNodeKind,
   SettingsBridge,
+  WindowBridge,
 } from "./types";
