@@ -5,9 +5,17 @@
   "directories": {
     "output": "release"
   },
-  "files": ["dist/**", { "from": "../web/dist", "to": "web" }],
+  "files": ["dist/**", { "from": "../web/dist", "to": "web" }, "build/tray.png"],
+  "icon": "build/icon.png",
   "asar": true,
   "npmRebuild": false,
+  "fileAssociations": [
+    {
+      "ext": "excalidraw",
+      "name": "Excalidraw Drawing",
+      "mimeType": "application/x-excalidraw"
+    }
+  ],
   "mac": {
     "target": "dmg",
     "category": "public.app-category.productivity",

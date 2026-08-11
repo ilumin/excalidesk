@@ -1,7 +1,7 @@
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { app, BrowserWindow, ipcMain, Menu, net, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, net, protocol, Tray } from "electron";
 
 import type { DesktopApi } from "@web/shared/api/fs/types";
 
@@ -97,6 +97,15 @@ function setApplicationMenu() {
   );
 }
 
+function createTray(window: BrowserWindow) {
+  const tray = new Tray(join(root(), "build/tray.png"));
+  tray.setToolTip("Excalidesk");
+  tray.on("click", () => {
+    if (window.isVisible()) window.hide();
+    else window.show();
+  });
+}
+
 async function createWindow() {
   const window = new BrowserWindow({
     title: "excalidesk",
@@ -124,13 +133,15 @@ async function createWindow() {
   }
 
   await window.loadURL(APP_URL);
+  return window;
 }
 
 app.whenReady().then(async () => {
   registerBridge();
   serveBuiltAssets();
   setApplicationMenu();
-  await createWindow();
+  const window = await createWindow();
+  createTray(window);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) void createWindow();
